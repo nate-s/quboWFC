@@ -1,64 +1,86 @@
-# quboWFC
-Re-quantum-iffying the procGen WFC algorithm
-
-Wave Function Collapse using actual quantum computing
+# Wave Function Collapse using actual quantum computing
 
 I am going to assume that the reader is either 1) already familiar with Wave Function Collapse (WFC) to a degree, or 2) that they have read through the blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse). You do not need a particularly extensive understanding of WFC to read this, but much of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. Disclaimer aside, let’s move straight into the exercise of overcomplicating an otherwise very simple and user friendly algorithm. 
 
 
 To do this we need to explain an idea called Quadratic Unconstrained Binary Optimization, also called a QUBO. Then we can discuss how QUBOs are used to solve problems leveraging quantum hardware. Finally, we can lay out how to take WFC and convert it into a QUBO problem to be solved on said hardware. 
-	Now first though, why are we doing this at all? The true answer is that I’m a huge math nerd and think it’s really funny to take a video game algorithm that needlessly appropriated a bunch of quantum physics terminology, and smash it with a mallet back into the realm of quantum physics. The practical answer is that quantum hardware can solve optimization problems that are essentially unsolvable through any other means, and they can do it on the order of milliseconds and faster for our intents and purposes. It also finds the GLOBAL MINIMUM, which does not mean much for us, but is an incredible guarantee in the real of optimization. If a problem can be realistically converted into a form ingestible by a quantum computer, then it likely should be. The disclaimer “realistically” has a lot of important factors behind it but we will discuss those at the end after laying everything out.
 
-QUBO
+Now first though, why are we doing this at all? The true answer is that I’m a huge math nerd and think it’s really funny to take a video game algorithm that needlessly appropriated a bunch of quantum physics terminology, and smash it with a mallet back into the realm of quantum physics. The practical answer is that quantum hardware can solve optimization problems that are essentially unsolvable through any other means, and they can do it on the order of milliseconds and faster for our intents and purposes. It also finds the GLOBAL MINIMUM, which does not mean much for us, but is an incredible guarantee in the real of optimization. If a problem can be realistically converted into a form ingestible by a quantum computer, then it likely should be. The disclaimer “realistically” has a lot of important factors behind it but we will discuss those at the end after laying everything out.
+
+
+## QUBO
 
 A QUBO is a mathematical formulation for Binary Optimization problems, or problems where each variable is binary (yes/no) (0/1). We want to find some optimal combination of these variables. A QUBO problem takes the form of:
 
-  y = x1^2*Q1 + x2^2*Q2 + x3^2*Q3 … xN^2*QN  +  2*x1*x2*Q12 + …
+```math
+y = x_1^2Q_1 + x_2^2Q_2 + x_3^2Q_3 … x_N^2Q_N  +  2x_1x_2Q_{1,2} + …
+```
 
-Where X_i are binary variables, Q is a set of weights for each choice, and y is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are trying buying the best snack food for a party within a budget:
+Where $x_i$ are binary variables, $Q_{ij}$ is a set of weights for each choice, and $y$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are trying buying the best snack food for a party within a budget:
 
+```math
+Soda = X_1 = \$4
+```
+```math
+Chips = X_2 = {\$5}
+```
+```math
+Fruits = X_3 = {\$2}
+```
+```math
+Budget = {\$9}
+```
 
-Soda = X1 = $4
-Chips = X2 = $5
-Fruits = X3 = $2
-
-Budget = $9
-
-Y = x_soda * q$ + x_chips * q$  + q$ + x_fruits * q$ 
+```math
+Y = x_{soda}q_\$ + x_{chips}q_\$ + x_{fruits}q_\$
+```
 
 If x_i is a binary variable for “did we buy this item”, and q$_i is the cost, the Y is the total $ amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
 
-Diff = ( sum(xi*Qi) - B )^2
-->
-sum( x_i*q_i )^2 - 2Bsum( x_i*q_i ) + B^2
-
-x_i * (q_i^2 - B) + x_ij * 2*(q_i*q_j) + B^2
-
-Diff = ( sum(xi*Qi) - B )^2
+```math
+Diff = ( \sum_{i=1}^Nx_iQ_i - B )^2
+```
+Expanded to
+```math
+ \sum_{i=1}^N (x_iq_i)^2 - 2B\sum_{i=1}^Nx_iq_i + B^2
+```
+Factored to
+```math
+x_i(q_i^2 - B) + x_{ij}*2(q_iq_j) + B^2
+```
 
 By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the global minimum optimal combination over every single item. But to do that we need to convert it into a QUBO, which is of the form:
 
-	x*Q*x’
+```math
+x*Q*x’
+```
 
 This is part of the matrix form for a quadratic equation, where x is a [1xN] vector of each binary variable (in our case what items to buy), and Q is the constraint matrix that shapes our whole optimization problem. In this case it is every constant in front of our expanded quadratic equation. 
 
-Diff = ( sum(xi*Qi) - B )^2
--> 
-Diff = ( x1*q1 + x2*q2 + x3*q3 - B )^2
-Diff = ( x1*q1 + x2*q2 + x3*q3 - B ) * ( x1*q1 + x2*q2 + x3*q3 - B )
+```math
+Diff = ( \sum_{i=1}^Nx_iQ_i - B )^2
+```
+```math
+Diff = ( x_1q_1 + x_2q_2 + x_3q_3 - B )^2
+```
+Expanded to
+```math
+Diff = ( x_1q_1 + x_2q_2 + x_3q_3 - B ) * ( x_1q_1 + x_2q_2 + x_3q_3 - B )
+```
 
-After factoring this around ->
+After factoring this around 
 
-Diff = sum_i( (xiQi)^2 ) + 2*sum_i( sum_k( xiQi * xkQk ) ) - 2*sum_i( xiQi*B ) + B^2
+```math
+Diff = \sum_{i=1}^N(x_iQ_i)^2 + 2\sum_{i=1}^N\sum_{k=1}^Nx_iQ_ix_kQ_k - 2\sum_{i=1}^Nx_iQ_iB + B^2
+```
 
-Now an important feature about binary equations is that a single variable is equal to it’s square
+Now an important feature about binary equations is that a single variable is equal to it’s square i.e. $`1 = 1x1`$,   $`0 = 0x0`$  therefor  $`x = x^2`$.
 
-	1 = 1*1 and 0 = 0*0  therefor  (x = x^2)
+In our binary quadratic equation we will subsitute each first order term with a second order term. When we drop the remaining constants we get:
 
-Therefore, in our quadratic equation each single term can be squared. When we drop the constants we get:
-
-Diff = sum_i(xi^2 * (Qi^2 - 2*qi*B) ) + 2*sum_i( sum_k( xiQi * xkQk ) ) 
-
+```math
+Diff = \sum_ix_i^2(Qi^2 - 2*qi*B) ) + 2*sum_i( sum_k( xiQi * xkQk ) ) 
+```
 Which is factored into a matrix form as 
 
 Diff = x * Q * x’
@@ -69,15 +91,18 @@ Which is coincidentally the exact form of a QUBO problem. In our snack example x
 This might be a reasonable point to delve into how a QUBO problem is put onto quantum hardware, which would inevitably bring us to the question of “What is happening under the hood?” However, this is both 1) a digression from WFC and 2) not something I am particularly qualified to explain. I will try to explain some of the quantum physics and science at the end, but for now suffice to say that the benefits of QUBOs on quantum hardware are
 
   1) A large combinatorial problem can be impossible to solve classically
-	2) If we do try, compared to a classical technique like a genetic algorithm the quantum solution can easily be 1e4 times faster. (I have seen this in real professional settings, and it gets faster)
-	3) It does this while finding the global minimum. This is an unbelievable promise honestly.
+  2) If we do try, compared to a classical technique like a genetic algorithm the quantum solution can easily be 1e4 times faster. (I have seen this in real professional settings, and it gets faster)
+  3) It does this while finding the global minimum. This is an unbelievable promise honestly.
 
-QUBO for WFC
 
-  Let’s first lay out a simple WFC problem. We have 
-	1) An empty grid map
-	2) A set of tiles we can place in each grid space
-	3) A set of adjacency rules dictating what tiles can be placed next to one another
+
+
+## QUBO applied to WFC
+
+Let’s first lay out a simple WFC problem. We have 
+  1) An empty grid map
+  2) A set of tiles we can place in each grid space
+  3) A set of adjacency rules dictating what tiles can be placed next to one another
 
 What we are going to do is define a set of binary variables that correspond to a decision to place a single tile type in a single map space. We will be using the following set of 16 tiles to generate a dungeon:
 
@@ -86,7 +111,7 @@ What we are going to do is define a set of binary variables that correspond to a
 For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefor assign a binary variable to each tile type for each map space. In an [8x8] size map with 16 tiles this yields 1024 binary variables. On a standard computer each of these variables can be represented by the smaller unit possible, a bit. Since we will be running this on a digital annealer which approximates quantum hardware we will instead represent each of these variables with a quantum bit (a qubit). Any problem set up as a QUBO will return a binary vectors whose qubits represent the minimum/maximum energy of the optimization problem. To set this problem up we need to form 2 constraints:
 
   1) We cannot place more than 1 tile per map coordinate
-	2) A tile can only be placed next to a valid neighboring tile
+  2) A tile can only be placed next to a valid neighboring tile
 
 Without constraint [1] the annealer might activate tile’s qubits per map coordinate i.e. telling us to place a water tile and wall tile in the same space (this is found under the OneHotQ function). To prevent this we need a constraint that makes placing more than 1 tile per space suboptimal. Since the annealer will find the global minimum it will never output a solution that violates this constraint. If we only want one qubit to activate we can write this as:
 
@@ -136,8 +161,8 @@ Laying out the general quadratic equation just for tile k:
 Constant A has [N] terms and B has N*(N-1) terms. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly:
 
   A*n + B*n*(n-1) 	 = E
-	-> A*n + B*n^2 - B*n	 = E
-	-> B*n^2 + n * (A - B)	 = E
+-> A*n + B*n^2 - B*n	 = E
+-> B*n^2 + n * (A - B)	 = E
 
 This tells us the output of our quadratic for n activated qubits. All we have to do now is find the weights A and B such that activating n qubits gives a frequency of sigma_k = n/(N*N). To do this we can start by finding where the maximum or minimum of the energy function is, which is done by taking the derivative with respect to n and setting equal to zero (wow truly back to calc 1 days):
 
@@ -173,7 +198,7 @@ Where j’ ranges from num_tiles->H * W * num_tiles. This corresponds to every o
 
 Now all cross activation terms take on their seeded values, so for the first qubit we get:
 
-  q1 * qj’ * Q1j’	->  (1/0) * qj’ * Q1j’
+  q1 * qj’ * Q1j’  ->  (1/0) * qj’ * Q1j’
 
 And the sum of the cross activation terms becomes:
 
@@ -190,18 +215,24 @@ Where the 0s and 1s correspond to the seeded qubit vector
 And seeding a specific tile will only affect the weight along the diagonal. We now have 4 constraints in our Q matrix:
 
   1) Q_one_hot
-	2) Q_place_key
-	3) Q_frequency
-	4) Q_seeded
+  2) Q_place_key
+  3) Q_frequency
+  4) Q_seeded
 
   -> Q = Q_one_hot + Q_place_key + Q_frequency  + Q_seeded
 
 With this we can generate a tile map where, for each map coordinate, we: will choose only a single tile, will choose a tile that connects legally to it’s neighbors, where each tile occurs as close to a set number of times as possible, and where any map coordinate can be pre-seeded with a tile before generation. This is very cool and potentially very powerful in my opinion. One of the greatest limitations of classical WFC is that, as a sequential decision making algorithm, it’s very slow. And while it’s remarkably simple to implement it can be incredibly tricky to fix incorrectly generated maps. The QUBO method finds solutions to these complex combinatorial problems at very fast speeds that are guaranteed to be correct, so QUBOs run on an annealer are free of both these problems! 
 
+
+
+
+
+## Problems with QUBOs
+
 HOWEVER, the tradeoffs are immense. From here on out is a discussion on the limitations of the QUBO problem and how they affect the WFC solution shown so far. The main points are:
 
   1) memory limitations
-	2) Randomness 
+  2) Randomness 
 
 The first of these problems is a modern hurdle for all quantum computers. The second of these problems stems from my inability to access a digital annealer at the moment. Either way, as with everything written so far, all comments, criticisms, suggestions, and collaborations are welcome!
 
