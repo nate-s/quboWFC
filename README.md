@@ -83,10 +83,12 @@ Diff = \sum_{i}x_i^2(Q_i^2 - 2q_iB) ) + 2sum_{i}( sum_{k}( x_iQ_ix_kQ_k ) )
 ```
 Which is factored into a matrix form as 
 
-Diff = x * Q * x’
+```math
+Diff = xQx’
+```
 
-Which is coincidentally the exact form of a QUBO problem. In our snack example x is a 1x3 vector where each variable represents our decision to purchase that item. Q is an [NxN] ( [3x3] ) matrix filled with the constants (Qi^2 - 2*qi*B) along the diagonal, and (Qi*Qk) as the cross-interaction coefficients. You can check that the vector x = [1, 1, 0] yields the minimum scalar output, which corresponds to purchasing the Soda and Chips!
-	Now this likely seems a very silly over complication. However, keep in mind that we only have 1 constraint, the minimization constraint. One of the great qualities of the QUBO formulation is that the constraint matrix Q is additive with any other equally sized Q matrices. We could create a new optimization constraint, say, the flavor constraint Q_f (so we equitably buy a diverse range of party snack flavors and not just chips). We could then make a new QUBO formulation by adding the two Q matrices together! This means a QUBO problem can have an incredible amount of constraints applied without increasing the memory usage of the problem itself. 
+Which is coincidentally the exact form of a QUBO problem. In our snack example x is a 1x3 vector where each variable represents our decision to purchase that item. Q is an [NxN] ( [3x3] ) matrix filled with the constants $`(Q_i^2 - 2q_iB)`$ along the diagonal, and $`(Q_iQ_k)`$ as the cross-interaction coefficients. You can check that the vector x = [1, 1, 0] yields the minimum scalar output, which corresponds to purchasing the Soda and Chips!
+	Now this likely seems a very silly over complication. However, keep in mind that we only have 1 constraint, the minimization constraint. One of the great qualities of the QUBO formulation is that the constraint matrix Q is additive with any other equally sized Q matrices. We could create a new optimization constraint, say, the flavor constraint $`Q_f`$ (so we equitably buy a diverse range of party snack flavors and not just chips). We could then make a new QUBO formulation by adding the two Q matrices together! This means a QUBO problem can have an incredible amount of constraints applied without increasing the memory usage of the problem itself. 
 
 This might be a reasonable point to delve into how a QUBO problem is put onto quantum hardware, which would inevitably bring us to the question of “What is happening under the hood?” However, this is both 1) a digression from WFC and 2) not something I am particularly qualified to explain. I will try to explain some of the quantum physics and science at the end, but for now suffice to say that the benefits of QUBOs on quantum hardware are
 
@@ -106,7 +108,7 @@ Let’s first lay out a simple WFC problem. We have
 
 What we are going to do is define a set of binary variables that correspond to a decision to place a single tile type in a single map space. We will be using the following set of 16 tiles to generate a dungeon:
 
-(Show 16 tiles with corresponding qubits q_1-16
+(Show 16 tiles with corresponding qubits $`q_1`$ to $`q_{16}`$
 
 For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefor assign a binary variable to each tile type for each map space. In an [8x8] size map with 16 tiles this yields 1024 binary variables. On a standard computer each of these variables can be represented by the smaller unit possible, a bit. Since we will be running this on a digital annealer which approximates quantum hardware we will instead represent each of these variables with a quantum bit (a qubit). Any problem set up as a QUBO will return a binary vectors whose qubits represent the minimum/maximum energy of the optimization problem. To set this problem up we need to form 2 constraints:
 
@@ -115,44 +117,48 @@ For each empty space in the map we are trying to decide which of these 16 tiles 
 
 Without constraint [1] the annealer might activate tile’s qubits per map coordinate i.e. telling us to place a water tile and wall tile in the same space (this is found under the OneHotQ function). To prevent this we need a constraint that makes placing more than 1 tile per space suboptimal. Since the annealer will find the global minimum it will never output a solution that violates this constraint. If we only want one qubit to activate we can write this as:
 
-sum_i( xi ) = 1
+```math
+\sum_{i}x_i = 1
+```
 
 For two variables this expands to 				
 
+```math
 ( 1 - x - y + 2xy )
+```
 
 And for 3
 
+```math
 ( 1 - x - y - z + 2xy + 2xz + 2yz ) 
+```
 
 Etc… ->
 
-Q = [ 1 -2 -2 -2 … -2]
-    [-2  1 -2 -2 … -2]
-	  ... 
-    [-2 -2 -2 -2 …  1]
+```math
+Q = \begin{bmatrix}1&-2&-2&...&-2\\-2&1&-2&...&-2\\-2&-2&1&...&-2
+\\ & &...\\-2&-2&-2&...&1\end{bmatrix}
+```
 
 As you maybe can see, by activating only a single qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to the sub-optimal answers, it will yield the correct solution. The second constraint is equally simple. For each tile type at a given map space [n,m] we need reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it is an illegal combination (This is done in the genLegalQ function). As a brief example:
 
-For map space [I,j] and tile type k
-	q_ij_k
+For map space [I,j] and tile type k = $`q_{i,j,k}`$
 
-We have map space [0,0], tile type 0
-	q_00_0
+We have map space [0,0], tile type 0 = $`q_{0,0,0}`$
 
-And map space [1,0], tile type 5
-	q_10_5
+And map space [1,0], tile type 5 = $`q_{1,0,5}`$
 
-If it is legal to place tile 5 above tile 0 then the weight w in w * q_00_0 * q_10_5 will be 1, and if not it will be -1. Our Q matrix using these two constraints looks like this:
+If it is legal to place tile 5 above tile 0 then the weight W in $`Wq_{0,0,0}q_{1,0,5}`$ will be 1, and if not it will be -1. Our Q matrix using these two constraints looks like this:
 
 (Out in the visual Q matrix)
 
   One their own these two constraints are enough to produces correct maps but they won’t necessarily make exciting maps and we have no control over the generation process. For instance, in the traditional procgen wfc algorithm, one of the things you usually want to implement is a frequency constraint. In example, if a treasure chest only appears once in your demo map then you likely want to generate maps that try to maintain the same treasure chest frequency, else a player would be laden with treasure chests and find your game a little too easy. I’m going to categorize this type of constraint as a flavoring constraint, or, any constraint that affects the style of maps generated.
 	My implementation of the frequency constraint is found in the genGlobalProbQ function. The derivation is as follows:
 
-In a map of size NxN the frequency of tile k is sigma_k
+In a map of size NxN the frequency of tile k is $`{\sigma}_k`$
 
-  sigma_k = ( # of times tile k is used)  / ( N*N )
+
+$`{\sigma}_k = (`$ # of times tile k is used $`)/(NN)`$
 
 Laying out the general quadratic equation just for tile k:
 
