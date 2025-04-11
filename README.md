@@ -13,46 +13,45 @@ Now first though, why are we doing this at all? The true answer is that I’m a 
 A QUBO is a mathematical formulation for Binary Optimization problems, or problems where each variable is binary (yes/no) (0/1). We want to find some optimal combination of these variables. A QUBO problem takes the form of:
 
 ```math
-y = x_1^2Q_1 + x_2^2Q_2 + x_3^2Q_3 … x_N^2Q_N  +  2x_1x_2Q_{1,2} + …
+y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + …
 ```
 
 Where $x_i$ are binary variables, $Q_{ij}$ is a set of weights for each choice, and $y$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are trying buying the best snack food for a party within a budget:
 
+| 	Item |	     Cost |
+|------------|------------|
+|$`x_{soda}`$|$`a_1=`$$4|
+|$`x_{soda}`$|$`a_2=`$$5|
+|$`x_{soda}`$|$`a_3=`$$2|
+
+Given these items and cost the binary formula for how much money we spend 
+
 ```math
-Soda = X_1 = \$4
+Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3
 ```
-```math
-Chips = X_2 = {\$5}
-```
-```math
-Fruits = X_3 = {\$2}
-```
+<br/>
+
+If x_i is a binary variable for “did we buy this item”, and a$_i is the cost, the Y is the total $ amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
 ```math
 Budget = {\$9}
 ```
-
 ```math
-Y = x_{soda}q_\$ + x_{chips}q_\$ + x_{fruits}q_\$
-```
-
-If x_i is a binary variable for “did we buy this item”, and q$_i is the cost, the Y is the total $ amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
-
-```math
-Diff = ( \sum_{i=1}^Nx_iQ_i - B )^2
+Diff = ( \sum_{i=1}^3x_iq_i - B )^2
 ```
 Expanded to
 ```math
- \sum_{i=1}^N (x_iq_i)^2 - 2B\sum_{i=1}^Nx_iq_i + B^2
+ \sum_{i=1}^3 (x_iq_i)^2 - 2B\sum_{i=1}^3x_iq_i + B^2
 ```
 Factored to
 ```math
-x_i(q_i^2 - B) + x_{ij}*2(q_iq_j) + B^2
+x_i(q_i^2 - B) + x_{ij}2(q_iq_j) + B^2
 ```
+where i != j in the _cross interaction_ terms.
 
 By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the global minimum optimal combination over every single item. But to do that we need to convert it into a QUBO, which is of the form:
 
 ```math
-x*Q*x’
+y = <ins>x</ins>Qx’
 ```
 
 This is part of the matrix form for a quadratic equation, where x is a [1xN] vector of each binary variable (in our case what items to buy), and Q is the constraint matrix that shapes our whole optimization problem. In this case it is every constant in front of our expanded quadratic equation. 
@@ -84,7 +83,7 @@ Diff = \sum_{i}x_i^2(Q_i^2 - 2q_iB) ) + 2sum_{i}( sum_{k}( x_iQ_ix_kQ_k ) )
 Which is factored into a matrix form as 
 
 ```math
-Diff = xQx’
+Diff = <ins>x<ins/>Qx’
 ```
 
 Which is coincidentally the exact form of a QUBO problem. In our snack example x is a 1x3 vector where each variable represents our decision to purchase that item. Q is an [NxN] ( [3x3] ) matrix filled with the constants $`(Q_i^2 - 2q_iB)`$ along the diagonal, and $`(Q_iQ_k)`$ as the cross-interaction coefficients. You can check that the vector x = [1, 1, 0] yields the minimum scalar output, which corresponds to purchasing the Soda and Chips!
@@ -162,8 +161,9 @@ $`{\sigma}_k = (`$ # of times tile k is used $`)/(NN)`$
 
 Laying out the general quadratic equation just for tile k:
 
-  A * ( q1*q1 + q2*q2 + q3*q3 + … qNN*qNN ) + B * ( q1*q2 + q1*q3 +… q1*qNN + … 				qN-1*QNN ) = E
-
+```math
+E = A(q_1^2 + q_2^2 + q_3^2 + … + q_{NN}^2 ) + B( q_1q_2 + q_1q_3 +… + q_1q_{NN} + … +q_{N-1}q_{NN})
+```
 Constant A has [N] terms and B has N*(N-1) terms. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly:
 
   A*n + B*n*(n-1) 	 = E
