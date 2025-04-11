@@ -79,7 +79,7 @@ Now an important feature about binary equations is that a single variable is equ
 In our binary quadratic equation we will subsitute each first order term with a second order term. When we drop the remaining constants we get:
 
 ```math
-Diff = \sum_ix_i^2(Qi^2 - 2*qi*B) ) + 2*sum_i( sum_k( xiQi * xkQk ) ) 
+Diff = \sum_{i}x_i^2(Q_i^2 - 2q_iB) ) + 2sum_{i}( sum_{k}( x_iQ_ix_kQ_k ) ) 
 ```
 Which is factored into a matrix form as 
 
