@@ -16,7 +16,7 @@ A QUBO is a mathematical formulation for Binary Optimization problems, or proble
 y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + …
 ```
 
-Where $x_i$ are binary variables, $Q_{ij}$ is a set of weights for each choice, and $y$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are trying buying the best snack food for a party within a budget:
+Where $x_i$ are binary variables, $q_{ij}$ is a set of weights for each choice, and $`y`$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are trying buying the best snack food for a party within a budget:
 
 | 	Item |	     Cost |
 |------------|------------|
@@ -31,13 +31,15 @@ Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3
 ```
 <br/>
 
-If x_i is a binary variable for “did we buy this item”, and a$_i is the cost, the Y is the total $ amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
+If $`x_i`$ is a binary variable for “did we buy this item”, and $`a_i`$ is the cost, the Y is the total $ amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
 ```math
 Budget = {\$9}
 ```
 ```math
-Diff = ( \sum_{i=1}^3x_iq_i - B )^2
+Diff = ( \sum_{i=1}^3x_ia_i - B )^2 
 ```
+
+<!---
 Expanded to
 ```math
  \sum_{i=1}^3 (x_iq_i)^2 - 2B\sum_{i=1}^3x_iq_i + B^2
@@ -47,209 +49,228 @@ Factored to
 x_i(q_i^2 - B) + x_{ij}2(q_iq_j) + B^2
 ```
 where i != j in the _cross interaction_ terms.
+--->
 
-By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the global minimum optimal combination over every single item. But to do that we need to convert it into a QUBO, which is of the form:
-
-```math
-y = <ins>x</ins>Qx’
-```
-
-This is part of the matrix form for a quadratic equation, where x is a [1xN] vector of each binary variable (in our case what items to buy), and Q is the constraint matrix that shapes our whole optimization problem. In this case it is every constant in front of our expanded quadratic equation. 
+By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the global minimum optimal combination over every single item. To do that however, we need to convert the difference equation into a QUBO, which is of the form: <br/><br/>
 
 ```math
-Diff = ( \sum_{i=1}^Nx_iQ_i - B )^2
+y = xQx’
 ```
+or 
 ```math
-Diff = ( x_1q_1 + x_2q_2 + x_3q_3 - B )^2
-```
-Expanded to
-```math
-Diff = ( x_1q_1 + x_2q_2 + x_3q_3 - B ) * ( x_1q_1 + x_2q_2 + x_3q_3 - B )
-```
-
-After factoring this around 
-
-```math
-Diff = \sum_{i=1}^N(x_iQ_i)^2 + 2\sum_{i=1}^N\sum_{k=1}^Nx_iQ_ix_kQ_k - 2\sum_{i=1}^Nx_iQ_iB + B^2
+y = \begin{bmatrix}x_1&x_2&x_3&...&x_{N}\end{bmatrix} 
+\begin{bmatrix}a_{11}&a_{12}&a_{13}&...&a_{1N}\\a_{21}&a_{22}&a_{23}&...&a_{2N}\\a_{31}&a_{32}&a_{33}&...&a_{3N}
+\\ & &...\\a_{N1}&a_{N2}&a_{N3}&...&a_{NN}\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\\x_3\\.\\.\\.\\x_{N}\end{bmatrix} 
 ```
 
-Now an important feature about binary equations is that a single variable is equal to it’s square i.e. $`1 = 1x1`$,   $`0 = 0x0`$  therefor  $`x = x^2`$.
-
-In our binary quadratic equation we will subsitute each first order term with a second order term. When we drop the remaining constants we get:
+<br/><br/>
+This is the Holy QUBO Equation, it defines the entirity of a QUBO problem, and it is the matrix form of a _quadratic optimization problem_ using _binary variables_. The vector __x__ contains each binary variable in an optimization problem, and the square matrix __Q__ contains the weights for each respective combination of bianry variables. The goal is to find what combination of binary variables (0s and 1s) will yield the optimal output __y__, either the minimum or maximum value. Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be coneverted into a QUBO but first we ned to write it out as a quadratic equation.
 
 ```math
-Diff = \sum_{i}x_i^2(Q_i^2 - 2q_iB) ) + 2sum_{i}( sum_{k}( x_iQ_ix_kQ_k ) ) 
+Diff = ( \sum_{i=1}^{N=3}x_ia_i - B )^2
 ```
-Which is factored into a matrix form as 
+
+Writing out the sum gives:
 
 ```math
-Diff = <ins>x<ins/>Qx’
+Diff = ( x_1a_1 + x_2a_2 + x_3a_3 - B )^2
 ```
 
-Which is coincidentally the exact form of a QUBO problem. In our snack example x is a 1x3 vector where each variable represents our decision to purchase that item. Q is an [NxN] ( [3x3] ) matrix filled with the constants $`(Q_i^2 - 2q_iB)`$ along the diagonal, and $`(Q_iQ_k)`$ as the cross-interaction coefficients. You can check that the vector x = [1, 1, 0] yields the minimum scalar output, which corresponds to purchasing the Soda and Chips!
-	Now this likely seems a very silly over complication. However, keep in mind that we only have 1 constraint, the minimization constraint. One of the great qualities of the QUBO formulation is that the constraint matrix Q is additive with any other equally sized Q matrices. We could create a new optimization constraint, say, the flavor constraint $`Q_f`$ (so we equitably buy a diverse range of party snack flavors and not just chips). We could then make a new QUBO formulation by adding the two Q matrices together! This means a QUBO problem can have an incredible amount of constraints applied without increasing the memory usage of the problem itself. 
+Which expoands to:
 
-This might be a reasonable point to delve into how a QUBO problem is put onto quantum hardware, which would inevitably bring us to the question of “What is happening under the hood?” However, this is both 1) a digression from WFC and 2) not something I am particularly qualified to explain. I will try to explain some of the quantum physics and science at the end, but for now suffice to say that the benefits of QUBOs on quantum hardware are
+```math
+Diff = ( x_1a_1 + x_2a_2 + x_3a_3 - B ) * ( x_1a_1 + x_2a_2 + x_3a_3 - B )
+```
+
+After factoring and writing back in summation form yields:
+
+```math
+Diff = \sum_{i=1}^{N=3}\sum_{k=1}^{N=3}x_ia_ix_ka_k - 2\sum_{i=1}^{N=3}x_ia_iB + B^2
+```
+
+Which should look simialr to the quadratic equation
+```math
+y = ax^2 + bx + c
+```
+
+However, a special feature about QUBOs is that they only have _second order_ terms. Fortunately _binary variables_ have a unique quality where a single variable being equal to its square i.e $`1 = 1x1`$,   $`0 = 0x0`$  therefor  $`x = x^2`$. In our binary quadratic equation we will square each first order variable leaving only cosntants and second order terms. The solution to the optimization problem is also not dependant on the constants so we can drop them giving:
+
+```math
+Diff = \sum_{i=1}^{N=3}x_i^2(a_i^2 - 2a_iB) + 2\sum_{i=1}^{N=3}\sum_{k}x_ia_ix_ka_k
+```
+Which can be written in matrix form as
+
+```math
+Diff = xQx'
+```
+
+Here, __x__ is a vector of length 3 with a binary variable correpsonding to the decision to buy a given snack. __Q__ is a square matrix of size [3x3] with the _self interaction coefficents_ (diagonal terms) $`(a_i^2 - 2a_iB)`$ and _cross interaction coefficients_ (off diagonal terms) $`a_ia_k`$. You can check that the vector x = [1, 1, 0] yields the minimum scalar output which corresponds to purchasing the Soda and Chips!
+	
+ 
+Now this likely seems a very silly over complication. Keep in mind however that we only have 1 constraint for minimizing budget difference. One great quality of QUBO is that the constraint matrix Q is additive with any other Q matrix of equal size. We could create a new optimization constraint, say, the flavor constraint $`Q_{flavor}`$ (so we equitably purchase a diverse range of party snack flavors and not just chips). We could then make a new QUBO formulation by adding the two Q matrices together. This means a QUBO problem can have a large amount of constraints applied without increasing the memory usage of the problem itself (the number of variables). 
+
+This might be a reasonable point to dive into how a QUBO problem is put onto quantum hardware, which would inevitably bring us to the question of “What is actually happening under the hood?” However, this is both 1) a digression from video game WFC and 2) not something I am particularly qualified to explain. I will try to explain some of the quantum physics and science at the end, but for now suffice to say that the benefits of QUBOs on quantum hardware are as follows:
 
   1) A large combinatorial problem can be impossible to solve classically
-  2) If we do try, compared to a classical technique like a genetic algorithm the quantum solution can easily be 1e4 times faster. (I have seen this in real professional settings, and it gets faster)
-  3) It does this while finding the global minimum. This is an unbelievable promise honestly.
+  2) If we try anyway, compared to a classical technique like a genetic algorithm, the quantum solution can easily be 1e4 times faster. (I have seen this in professional settings and it gets faster)
+  3) It does this while finding the _global minimum_. This is a wild promise honestly.
 
 
 
 
-## QUBO applied to WFC
+## QUBO applied to WFC (README WIP)
 
-Let’s first lay out a simple WFC problem. We have 
+Let’s first lay out a simple WFC problem. We have
   1) An empty grid map
   2) A set of tiles we can place in each grid space
   3) A set of adjacency rules dictating what tiles can be placed next to one another
 
-What we are going to do is define a set of binary variables that correspond to a decision to place a single tile type in a single map space. We will be using the following set of 16 tiles to generate a dungeon:
+What we are going to do is define a set of binary variables that correspond to a decision to place a _single tile type_ in a _single map space_. We will be using the following set of 16 tiles to generate a dungeon:
 
-(Show 16 tiles with corresponding qubits $`q_1`$ to $`q_{16}`$
+(Show 16 tiles with corresponding qubits $`x_1`$ through $`x_{16}`$
 
-For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefor assign a binary variable to each tile type for each map space. In an [8x8] size map with 16 tiles this yields 1024 binary variables. On a standard computer each of these variables can be represented by the smaller unit possible, a bit. Since we will be running this on a digital annealer which approximates quantum hardware we will instead represent each of these variables with a quantum bit (a qubit). Any problem set up as a QUBO will return a binary vectors whose qubits represent the minimum/maximum energy of the optimization problem. To set this problem up we need to form 2 constraints:
+For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefor assign a binary variable to each tile type for each map space. In an [8x8] size map with 16 tiles this yields 1024 binary variables. On a standard computer each of these variables can be represented by the smallest unit possible, a bit. Since we will be running this on something called a _digital annealer_, which approximates quantum hardware, we will instead represent these variables with a _quantum bit_ (a qubit). We will define a qubit in our problem as $`x_{i,j,k}`$ corresponding to a tile type K placed at map coordinate [i,j]. Any problem set up as a QUBO will return a binary vectors whose _qubits_ represent the minimum/maximum energy of the optimization problem set up by the __Q__ matrix. To do this for proc gen WFC we need to develop 2 constraints:
 
   1) We cannot place more than 1 tile per map coordinate
   2) A tile can only be placed next to a valid neighboring tile
 
-Without constraint [1] the annealer might activate tile’s qubits per map coordinate i.e. telling us to place a water tile and wall tile in the same space (this is found under the OneHotQ function). To prevent this we need a constraint that makes placing more than 1 tile per space suboptimal. Since the annealer will find the global minimum it will never output a solution that violates this constraint. If we only want one qubit to activate we can write this as:
+Without constraint [1] the annealer could activate multiple qubits per map coordinate i.e. telling us to place a water tile and wall tile in the same space. To prevent this we need a constraint that defines placing more than 1 tile per space suboptimal (this is found under the oneHotQ function). Since the annealer will find the global minimum it will never output a solution that violates this constraint __IF__ we formulate it correctly. Since we only want one qubit to activate per space we can write this cosntraint mathematically as:
 
 ```math
-\sum_{i}x_i = 1
+\sum_{i}^Nx_i = 1
 ```
 
-For two variables this expands to 				
+For two variables the optimization equation expands to 				
 
 ```math
-( 1 - x - y + 2xy )
+E = ( 1 - x - y + 2xy )
 ```
 
 And for 3
 
 ```math
-( 1 - x - y - z + 2xy + 2xz + 2yz ) 
+E = ( 1 - x - y - z + 2xy + 2xz + 2yz ) 
 ```
 
-Etc… ->
+Etc. As you can see the cross interaction terms are +2 and the self interaction terms are -1. Since I have abritrarily decided to write this as a _maximization_ problem I swapped the signs and the Q matrix becomes:
 
 ```math
 Q = \begin{bmatrix}1&-2&-2&...&-2\\-2&1&-2&...&-2\\-2&-2&1&...&-2
 \\ & &...\\-2&-2&-2&...&1\end{bmatrix}
 ```
-
-As you maybe can see, by activating only a single qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to the sub-optimal answers, it will yield the correct solution. The second constraint is equally simple. For each tile type at a given map space [n,m] we need reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it is an illegal combination (This is done in the genLegalQ function). As a brief example:
-
-For map space [I,j] and tile type k = $`q_{i,j,k}`$
-
-We have map space [0,0], tile type 0 = $`q_{0,0,0}`$
-
-And map space [1,0], tile type 5 = $`q_{1,0,5}`$
-
-If it is legal to place tile 5 above tile 0 then the weight W in $`Wq_{0,0,0}q_{1,0,5}`$ will be 1, and if not it will be -1. Our Q matrix using these two constraints looks like this:
-
-(Out in the visual Q matrix)
-
-  One their own these two constraints are enough to produces correct maps but they won’t necessarily make exciting maps and we have no control over the generation process. For instance, in the traditional procgen wfc algorithm, one of the things you usually want to implement is a frequency constraint. In example, if a treasure chest only appears once in your demo map then you likely want to generate maps that try to maintain the same treasure chest frequency, else a player would be laden with treasure chests and find your game a little too easy. I’m going to categorize this type of constraint as a flavoring constraint, or, any constraint that affects the style of maps generated.
-	My implementation of the frequency constraint is found in the genGlobalProbQ function. The derivation is as follows:
-
-In a map of size NxN the frequency of tile k is $`{\sigma}_k`$
+<br/>
+As you might see, by activating only a single qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. <br/> <br/>
 
 
-$`{\sigma}_k = (`$ # of times tile k is used $`)/(NN)`$
-
-Laying out the general quadratic equation just for tile k:
+The second constraint (legal neighbor placement) is equally simple. For each tile type at a given map space [n,m] we need to reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it's an illegal combination (This is done in the genLegalQ function). To demonstrate, let the qubit $`x_{i,j,k}`$ correspond to a tile type K placed at map coordinate [i,j]. Take as example the qubits $`x_{0,0,0}`$ and $`x_{1,0,5}`$. If it's legal to place tile 5 above tile 0 then the cross coefficient $`a`$ in $`ax_{0,0,0}x_{1,0,5}`$ will be 1, and if it's illegal it will be -1. The new Q matrix is comprised of both these constraints 
 
 ```math
-E = A(q_1^2 + q_2^2 + q_3^2 + … + q_{NN}^2 ) + B( q_1q_2 + q_1q_3 +… + q_1q_{NN} + … +q_{N-1}q_{NN})
+Q = Q_{oneHot} + Q_{legal}
 ```
-Constant A has [N] terms and B has N*(N-1) terms. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly:
 
-  A*n + B*n*(n-1) 	 = E
--> A*n + B*n^2 - B*n	 = E
--> B*n^2 + n * (A - B)	 = E
+On their own these two constraints are enough to produce _correct_ maps, but they won’t necessarily produce _exciting_, maps and we have zero control over the generation process. In traditional procgen WFC one of the things a dev usually wants to implement is a _frequency constraint_. If a treasure chest only appears once in the demo map then the generated maps should also try to maintain a similar placement rate, unless the dev wants the player to be lousy with treasure. I’m going to categorize this type of constraint as a _flavoring constraint_, meaning any constraint that affects the style of maps generated (and is found in the genGlobalProbQ function). The derivation is as follows:
 
-This tells us the output of our quadratic for n activated qubits. All we have to do now is find the weights A and B such that activating n qubits gives a frequency of sigma_k = n/(N*N). To do this we can start by finding where the maximum or minimum of the energy function is, which is done by taking the derivative with respect to n and setting equal to zero (wow truly back to calc 1 days):
+In a map of size [NxN], the frequency of tile k is $`{\sigma}_k`$, where $`{\sigma}_k = (`$ # of times tile k is used $`)/(NN)`$
 
-  dE/dn = 2*B*sigma_k * n + (A - B) = 0
+Laying out the general quadratic equation _just_ for tile k:
 
-And since we know for our map of size is NxN, the correct number of tiles to use is
+```math
+y = A(x_1^2 + x_2^2 + x_3^2 + … + x_{NN}^2 ) + B( x_1x_2 + x_1x_3 +… + x_1x_{NN} + … +x_{N-1}x_{NN})
+```
+The A matrix has [N] cosntant terms for the diagonal, and the B matrix has N*(N-1) terms for the off-diagonals. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly: <br/>
 
-  sigma_k = n/(N*N) -> n = sigma_k*( N*N )
+```math
+y = An + Bn(n-1) = An + Bn^2 - Bn = Bn^2 + n(A-B)
+```
+
+This quadratic tells us the... energy(?)... for n activated qubits. It doesn't actually mean anything as an optimization unless we can make the minimum/maximum correspodn to our desired number of tile placements. This means we have to find the weights A and B such that activating qubits with the frequency of $`{\sigma}_k = n/(NN)`$ gives the optimal output. To do this we need to find this optimal output in the first place, which we can do by taking the derivative and setting it equal to zero (wow truly back to calc 1 days):
+
+```math
+dy/dn = 2Bn + A - B = 0
+```
+
+And since we know for our map of size is [NxN], the correct number of tiles to use is
+
+```math
+n = {\sigma}_k(NN)
+```
 
 Which we can substitute into our derivative to get
-	
-  2*B*sigma_k * ( N*N ) + (A - B) = 0
+
+```math
+0 = 2B{\sigma}_k(NN) + A - B
+```
 
 We can solve for A:
 
-  A = - B * ( 2 * sigma_k*( N*N ) - 1 ) 
+```math
+A = B(1 - 2{\sigma}_k(NN))
+```
 
 I have decided we can set B arbitrarily to 1 resulting Q matrix that might look like:
 
 (Q matrix for probability constraint)
 
-Now the optimal solution to our QUBO function is one where tile k only occurs with frequency sigma_k! This is an essentially complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game dev. For the dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed. The thought process for my proposed solution is as follows. We have a set of qubits corresponding to a tile space [0, 0]:
+Now the optimal solution to our QUBO function is one where tile k only occurs with frequency $`{\sigma}_k`$! This is essentially a complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game dev. In our dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed. The thought process for my proposed solution is as follows. We have a set of qubits corresponding to a tile space [0, 0]:
 
-  sum_j( sum_i( qi * qj * Q_ij ) )
+```math
+\sum_k^{16}\sum_{k'}^{16}x_kx_{k'}a_{kk'}
+```
 
-Where I and J range from 0->num_tiles. This corresponds to the QUBO expansion for the first tile [0, 0]. We also have the qubits corresponding to all cross activations:
+This corresponds to the QUBO expansion for the first tile [0, 0]. We also have the qubits corresponding to all cross activations:
 
-  sum_j’( sum_i( qi * qj’ * Q_ij’ ) ) 
+```math
+\sum_{k=1}^{16}\sum_{j=17}^{NN}x_kx_ja_{kj}
+```
 
-Where j’ ranges from num_tiles->H * W * num_tiles. This corresponds to every other qubit for every other tile space on the map. If we want to pre-seed the first tile with a dungeon entrance (tile # 3), then we end up with a vector 
+Where $`j`$ spans all remaining cross-coefficients. If we want to pre-seed the first tile with a dungeon entrance (tile # 3), then we end up with a vector 
 
   v = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 Now all cross activation terms take on their seeded values, so for the first qubit we get:
 
-  q1 * qj’ * Q1j’  ->  (1/0) * qj’ * Q1j’
+```math
+x_1x_ja_{1j} = (0)x_ja_{1j}
+```
+and the third term
+```math
+x_3x_ja_{3j} = (1)x_ja_{3j}
+```
+Once again, since a a binary variable's first order term is equal to its second order term, these can be added to the self activation coefficients of our remaining variables. Therefore, seeding a tile will only affect the weight along the diagonal. We now have 4 constraints in our Q matrix:
 
-And the sum of the cross activation terms becomes:
-
-  sum_j’( 1 * qj’ * Qij’ ) + sum_j’( 0 * qj’ * Qij’ )	
-
-and since a binary variable also equals its square (0 = 0*0 & 1 = 1*1) we will expand this to ->
-	
-  sum_j’( ( 1 * qj’ * qj’ * Q_ij’ ) ) + sum_j’( ( 0 * qj’ * qj’ * Q_ij’ ) )
-
-Where the 0s and 1s correspond to the seeded qubit vector 
-	
-  v = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- 
-And seeding a specific tile will only affect the weight along the diagonal. We now have 4 constraints in our Q matrix:
-
-  1) Q_one_hot
-  2) Q_place_key
-  3) Q_frequency
-  4) Q_seeded
-
-  -> Q = Q_one_hot + Q_place_key + Q_frequency  + Q_seeded
-
-With this we can generate a tile map where, for each map coordinate, we: will choose only a single tile, will choose a tile that connects legally to it’s neighbors, where each tile occurs as close to a set number of times as possible, and where any map coordinate can be pre-seeded with a tile before generation. This is very cool and potentially very powerful in my opinion. One of the greatest limitations of classical WFC is that, as a sequential decision making algorithm, it’s very slow. And while it’s remarkably simple to implement it can be incredibly tricky to fix incorrectly generated maps. The QUBO method finds solutions to these complex combinatorial problems at very fast speeds that are guaranteed to be correct, so QUBOs run on an annealer are free of both these problems! 
-
-
+  1) $`Q_{oneHot}`$ <br/>
+  2) $`Q_{legal}`$ <br/>
+  3) $`Q_{\sigma}`$ <br/>
+  4) $`Q_{seeded}`$
+```math
+Q = Q_{oneHot} + Q_{legal} + Q_{\sigma}  + Q_{seeded}
+```
+<br/><br/>
+With this we can generate a tile map where for each map coordinate the annealer: will choose only a single tile, will choose a tile that connects legally to its neighbors, where each tile occurs as close to a set number of times as possible, and where any map coordinate can be seeded. This is very cool and potentially very powerful in my opinion. One of the greatest limitations of classical WFC is that as a sequential decision making algorithm it’s very slow. And while it’s remarkably simple to implement it can be incredibly tricky to _fix_ incorrectly generated maps. QUBOs run on an annealer are free of both these problems because they finds guaranteed correct solutions to these complex problems extremely quickly!
 
 
 
 ## Problems with QUBOs
 
-HOWEVER, the tradeoffs are immense. From here on out is a discussion on the limitations of the QUBO problem and how they affect the WFC solution shown so far. The main points are:
+HOWEVER, the tradeoffs are immense (monkey's paw curls). From here on out is a discussion on the limitations of the QUBO and how they affect the procgen WFC solution shown so far. The main points are:
 
   1) memory limitations
   2) Randomness 
 
 The first of these problems is a modern hurdle for all quantum computers. The second of these problems stems from my inability to access a digital annealer at the moment. Either way, as with everything written so far, all comments, criticisms, suggestions, and collaborations are welcome!
 
-1) Memory
-	The first and most immediate bottleneck with quantum hardware and software today is how limited it is by memory. A qubit is analogous to an actual bit, and a cutting edge annealer may only have access to around ~5k qubits. Our dungeon problem was building an [8 x 8] map with 16 tile types. This uses 1024 qubits. We clearly will not be generating a Minecraft sized world with this number of variables. We could generate a map of size [17 x 17] using 4624 qubits, but even then we aren’t exactly using a wide array of tile types. Now this isn’t necessarily a problem and it’s definitely not insurmountable. For instance this may not be as restrictive as we might think, after all, Into the Breach takes place on [8 x 8] tile maps and those maps yield an immense amount of gameplay complexity. What if we want to build something along the lines of one of the 2D Zelda maps? We could formulate this as a chunk generation problem and build 1000 [8 x 8] spaces which can be stitched together to make an [800 x 800] sized map. Running these problems on an annealer is fast enough that 1000 solutions is still remarkably fast (and way faster than you could run traditional WFC). The question that remains is: How do you make a compelling world map one [8 x 8] chunk at a time?
 
-2) Randomness
-	The point of WFC is to procedurally generate different maps each time. An annealer solves a given QUBO problem. The annealer will therefor return the same solution each time if that solution is the singularly most optimal of all possible combinations. This is not random and not satisfactory for our intents. Conversely however, if two solutions are both globally optimal, the annealer should return one of the two randomly. A QUBO to demonstrate this would be:
+### 1) Memory
 
-	Q = [1   -1]
-	    [-1   1]
+The first and most immediate bottleneck with quantum hardware today is how limited it is by memory. A qubit is analogous to an actual bit, and a cutting edge annealer may only have access to around ~5k qubits. Our dungeon problem was building an [8 x 8] map with 16 tile types. This uses 1024 qubits. We clearly will not be generating a _Minecraft_ sized world with this limited number of variables. We could generate a map of size [17 x 17] using 4624 qubits, but even then we aren’t exactly using a wide array of tile types. Now this isn’t necessarily a problem and it’s definitely not insurmountable. For instance it may not be as restrictive as we might think, after all, _Into the Breach_ takes place on an [8 x 8] grid and those maps provide an immense amount of gameplay complexity. But what if we want to build something along the lines of one of the 2D _Zelda_ maps? We could formulate this as a chunk generation problem, build 1000 [8 x 8] grids, and stitch them together to make an [800 x 800] sized map. Running these problems on an annealer is fast enough that 1000 solutions is still remarkably quick (and way faster than you could run traditional WFC). The question that remains is: How do you make a compelling world one [8 x 8] chunk at a time? (Spoiler I think I might use TF-IDF which comes from information theory and is used in document analysis)
 
-Since either [1, 0] or [0, 1] are optimal, the annealer should randomly activate one either of the two qubits. However, I can’t test this since I don’t have access to run time on an annealer >:(
-This is important to know because depending on how you set up the constraints for a QUBO WFC matrix, any of the legal placed solutions should be optimal and therefore the annealer will return a random map. I am not a quantum physicist though and don’t actually know what that potential randomness will look like. 
+### 2) Randomness
+
+The point of WFC is to procedurally generate different maps each time. An annealer solves a given QUBO problem. The annealer will therefor return the same solution each time if that solution is the singularly most optimal of all possible combinations. This is not random and not satisfactory for our intents. Conversely, if two solutions are both globally optimal, the annealer should return one of the two randomly. A QUBO to demonstrate this would be:
+
+```math
+Q = \begin{bmatrix}1&-1\\-1&1\end{bmatrix}
+```
+     
+Since either [1, 0] or [0, 1] are optimal the annealer should randomly activate either of the two qubits. I can’t test this however since I don’t have access to run time on an annealer >:( This potential randomness is important to know because depending on how you set up the constraints for a QUBO, any of the "legaly placed solutions" should be optimal. The annealer should therefore return a random map. Since I am not a quantum physicist though and don’t actually know what that potential randomness will look like, is it normaly distributed, is it true random? I DON'T KNOW WHY DID THEY REMOVE THE FREE ANNEALER ACCESS (I get why but I want to make silly game stuff). 
