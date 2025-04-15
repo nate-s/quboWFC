@@ -20,7 +20,7 @@ A QUBO is a mathematical formulation for Binary Optimization problems, or proble
 y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + …
 ```
 
-Where $x_i$ are binary variables, $a_{ij}$ is a set of weights for each choice, and $`y`$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are want to buy the best snack food for a party within a budget:
+\(e^{i\theta}=\cos(\theta)+i\sin(\theta)\) Where $x_i$ are binary variables, $a_{ij}$ is a set of weights for each choice, and $`y`$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are want to buy the best snack food for a party within a budget:
 
 | 	Item |	     Cost |
 |------------|------------|
