@@ -16,13 +16,9 @@ Quickly though, why are we doing this at all? The true answer is that I’m a hu
 
 A QUBO is a mathematical formulation for Binary Optimization problems, or problems where each variable is binary (yes/no) (0/1). We want to find some optimal combination of these variables. A QUBO problem takes the form of:
 
-```math
-y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + …
-```
-
 $$ y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + … $$
 
-\(e^{i\theta}=\cos(\theta)+i\sin(\theta)\) Where $x_i$ are binary variables, $a_{ij}$ is a set of weights for each choice, and $`y`$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are want to buy the best snack food for a party within a budget:
+Where $$x_i$$ are binary variables, $$a_{ij}$$ is a set of weights for each choice, and $$y$$ is the output we are trying to maximize or minimize. In a concrete example we can look at a scenario where we are want to buy the best snack food for a party within a budget:
 
 | 	Item |	     Cost |
 |------------|------------|
@@ -32,18 +28,15 @@ $$ y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + �
 
 Given these items and cost the binary formula for how much money we spend is:
 
-```math
-Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3
-```
+$$ Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3 $$
+
 <br/>
 
 If $`x_i`$ is a binary variable for “did we buy this item”, and $`a_i`$ is the cost, then Y is the total dollar amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
-```math
-Budget = {\$9}
-```
-```math
-Diff = ( \sum_{i=1}^3x_ia_i - B )^2 
-```
+
+$$ Budget = {\$9} $$
+
+$$ Diff = ( \sum_{i=1}^3x_ia_i - B )^2 $$
 
 <!---
 Expanded to
@@ -59,6 +52,14 @@ where i != j in the _cross interaction_ terms.
 
 By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the optimal combination. To do that however we need to convert the difference equation into a QUBO of the form: <br/><br/>
 
+$$ y = xQx’ $$
+
+\\[ y = \begin{bmatrix}x_1&x_2&x_3&...&x_{N}\end{bmatrix} 
+\begin{bmatrix}a_{11}&a_{12}&a_{13}&...&a_{1N}\\a_{21}&a_{22}&a_{23}&...&a_{2N}\\a_{31}&a_{32}&a_{33}&...&a_{3N}
+\\ & &...\\a_{N1}&a_{N2}&a_{N3}&...&a_{NN}\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\\x_3\\.\\.\\.\\x_{N}\end{bmatrix} \\]
+
+<!---
 ```math
 y = xQx’
 ```
@@ -69,6 +70,7 @@ y = \begin{bmatrix}x_1&x_2&x_3&...&x_{N}\end{bmatrix}
 \\ & &...\\a_{N1}&a_{N2}&a_{N3}&...&a_{NN}\end{bmatrix}
 \begin{bmatrix}x_1\\x_2\\x_3\\.\\.\\.\\x_{N}\end{bmatrix} 
 ```
+--->
 
 <br/><br/>
 This is the Holy QUBO Equation, it defines the entirity of a QUBO problem, and it is the matrix form of a _quadratic optimization problem_ using _binary variables_. The vector __x__ contains each binary variable in the optimization problem, and the square matrix __Q__ contains the weights for each respective combination of binary variables. The goal is to find what combination of binary variables (0s and 1s) will yield the optimal output __y__ (either the minimum or maximum value). Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be coneverted into a QUBO but first we need to write it out as a quadratic equation.
