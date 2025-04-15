@@ -1,6 +1,6 @@
 # Wave Function Collapse using actual quantum computing and quantum anealers 
 
-You can find the GitHub repo here [here](https://github.com/nate-s/quboWFC.git). This is a WIP. Updates coming soon are 
+You can find the GitHub repo here [here](https://github.com/nate-s/quboWFC.git), and the io page [here](https://nate-s.github.io/quboWFC/). This is a WIP. Updates coming soon are 
 1) Cool pictures to convey concepts easier
 2) Actual generated maps
 
