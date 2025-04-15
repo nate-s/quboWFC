@@ -1,4 +1,8 @@
-# Wave Function Collapse using actual quantum computing
+# Wave Function Collapse using actual quantum computing and quantum anealers 
+
+You can find the GitHub repo here [here](https://github.com/nate-s/quboWFC.git). This is a WIP. Updates coming soon are 
+1) Cool pictures to convey concepts easier
+2) Actual generated maps
 
 I am going to assume that the reader is either 1) already familiar with Wave Function Collapse (WFC) to a degree, or 2) that they have read through the blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse). You do not need a particularly extensive understanding of WFC to read this, but much of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. Disclaimer aside, let’s move straight into the exercise of overcomplicating an otherwise very simple and user friendly algorithm. 
 
