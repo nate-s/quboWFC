@@ -22,15 +22,15 @@ Where $$x_i$$ are binary variables, $$a_{ij}$$ is a set of weights for each choi
 
 | 	Item |	     Cost |
 |------------|------------|
-|$`x_{soda}`$|$`a_1=`$$4|
-|$`x_{chips}`$|$`a_2=`$$5|
-|$`x_{fruits}`$|$`a_3=`$$2|
+|$$x_{soda}$$|$$a_1=$$$4|
+|$$x_{chips}$$|$$a_2=$$$5|
+|$$x_{fruits}$$|$$a_3=$$$2|
 
 Given these items and cost the binary formula for how much money we spend is:
 
 $$ Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3 $$
 
-If $`x_i`$ is a binary variable for “did we buy this item”, and $`a_i`$ is the cost, then Y is the total dollar amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
+If $$x_i$$ is a binary variable for “did we buy this item”, and $$a_i$$ is the cost, then Y is the total dollar amount spent. Accounting for our budget B we can write out the difference between money spent and the budget as:
 
 $$ Budget = {\$9} $$
 
