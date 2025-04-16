@@ -167,17 +167,25 @@ $$ Q = \begin{bmatrix} 1 & -2 & -2 & ... & -2\\
 -2 & -2 & -2 & ... & 1 \end{bmatrix} $$
 
 <br/>
-As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. <br/> <br/>
-
+As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. A visual of the Q matrix is shown below for our set of 16 tiles over a [3x3] map space. It is hard ot tell since these matrices grow large very quickly, but this cosntraint only affects variables in increments of 16. This reflects how we are using 16 tiles per grid space. On a [3x3] map we have $$(3)(3)*(16) = 144$$ variables.<br/> 
 
 <img src="{{site.url}}/images/Q%20One%20Hot%20Tile%20Constraint.png" style="display: block; margin: auto;" />
+<br/>
 
+The second constraint (legal neighbor placement) is equally simple. For each tile type at a given map space [i,j] we need to reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it's an illegal combination (This is done in the genLegalQ function). To demonstrate, let the qubit $$x_{i,j,k}$$ correspond to a tile type K placed at map coordinate [i,j]. Take as example the qubits $$x_{0,0,0}$$ and $$x_{1,0,5}$$. If it's legal to place tile 5 above tile 0 then the cross coefficient $$a$$ in $$ax_{0,0,0}x_{1,0,5}$$ will be 1, and if it's illegal it will be -1. A visual of this cosntraint is shown below.
 
-The second constraint (legal neighbor placement) is equally simple. For each tile type at a given map space [i,j] we need to reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it's an illegal combination (This is done in the genLegalQ function). To demonstrate, let the qubit $$x_{i,j,k}$$ correspond to a tile type K placed at map coordinate [i,j]. Take as example the qubits $$x_{0,0,0}$$ and $$x_{1,0,5}$$. If it's legal to place tile 5 above tile 0 then the cross coefficient $$a$$ in $$ax_{0,0,0}x_{1,0,5}$$ will be 1, and if it's illegal it will be -1. The new Q matrix is comprised of both these constraints 
+<img src="{{site.url}}/images/Q%20Valid%20Placement%20Constraint.png" style="display: block; margin: auto;" />
 
+This is likely the most visually distinct of the constraints I will lay out here so I will dissect it a little in detail. 
+
+<br/>
+The new Q matrix is comprised of both these constraints 
 
 $$ Q = Q_{oneHot} + Q_{legal} $$
+<br/>
 
+<img src="{{site.url}}/images/Combined%20Q%20Matrix.png" style="display: block; margin: auto;" />
+<br/>
 
 On their own these two constraints are enough to produce _correct_ maps, but they won’t necessarily produce _exciting_ maps, and we have zero control over the generation process. In traditional procgen WFC one of the things a dev usually wants to implement is a _frequency constraint_. If a treasure chest only appears once in the demo map then the generated maps should also try to maintain a similar placement rate, unless the dev wants the player to be lousy with treasure. I’m going to categorize this type of constraint as a _flavoring constraint_, meaning any constraint that affects the style of maps generated (and is found in the genGlobalProbQ function). The derivation is as follows:
 
@@ -217,7 +225,11 @@ $$ A = B(1 - 2{\sigma}_k(NN)) $$
 
 I have arbitrarily decided we can set B to 1 resulting Q matrix that might look like:
 
-(Q matrix for probability constraint)
+<img src="{{site.url}}/images/Q%20Global%20Probability%20Constraint.png" style="display: block; margin: auto;" />
+
+<img src="{{site.url}}/images/Q%20Global%20Probability%20Constraint%20(zoomed).png" style="display: block; margin: auto;" />
+
+(Say something about probability cosntraint here)
 
 Now the optimal solution to our QUBO function is one where tile k only occurs with frequency $${\sigma}_k$$! This is close to a complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game dev. In our dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed by _seeding_ that tile. The thought process for my proposed solution is as follows. We have a set of qubits tile space [0, 0]:
 
@@ -252,6 +264,8 @@ Once again, since a a binary variable's first order term is equal to it's second
   4) $$Q_{seeded}$$
 
 $$ Q = Q_{oneHot} + Q_{legal} + Q_{\sigma}  + Q_{seeded} $$
+
+<img src="{{site.url}}/images/Q%20Matrix%20for%203x3%20tile%20map.png" style="display: block; margin: auto;" />
 
 <br/><br/>
 With this we can generate a tile map where the annealer: will choose only a single tile per grid space, the chosen tile will connect legally to its neighbors, each tile type will occur as close to a set number of times as possible, and any grid space on the map can be seeded. This is very cool in my opinion and potentially very powerful. Classical WFC is extremely limited because it places tiles sequentially which will always pose a major bottleneck. And while it’s remarkably simple to implement it's also incredibly tricky to _fix_ any incorrectly generated maps. QUBOs that are run on an annealer are free of both these problems because they find guaranteed correct solutions to complex problems extremely quickly!
