@@ -166,17 +166,20 @@ $$ Q = \begin{bmatrix} 1 & -2 & -2 & ... & -2\\
   &  & ... &  & \\ 
 -2 & -2 & -2 & ... & 1 \end{bmatrix} $$
 
+
 <br/>
-As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. A visual of the Q matrix is shown below for our set of 16 tiles over a [3x3] map space. It is hard ot tell since these matrices grow large very quickly, but this cosntraint only affects variables in increments of 16. This reflects how we are using 16 tiles per grid space. On a [3x3] map we have $$(3)(3)*(16) = 144$$ variables.<br/> 
+As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. A visual of the Q matrix is shown below for our set of 16 tiles over a [3x3] map space. It is hard ot tell since these matrices grow large very quickly, but this cosntraint only affects variables in increments of 16. This reflects how we are using 16 tiles per grid space. On a [3x3] map we have (3)(3)(16)=144 variables.
+<br/> 
+
 
 <!---
-<img src="{{site.url}}/images/Q%20One%20Hot%20Tile%20Constraint.png" style="display: block; margin: auto;" />
---->
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://github.com/nate-s/quboWFC/blob/main/images/Q%20One%20Hot%20Tile%20Constraint%20dark.png">
+<source media="(prefers-color-scheme: dark)" srcset="https://github.com/nate-s/quboWFC/blob/main/images/Q%20One%20Hot%20Tile%20Constraint.png">
 <source media="(prefers-color-scheme: light)" srcset="https://github.com/nate-s/quboWFC/blob/main/images/Q%20One%20Hot%20Tile%20Constraint.png">
-<img alt="alt images text somewhere?" src="https://github.com/nate-s/quboWFC/blob/main/images/Q%20One%20Hot%20Tile%20Constraint.png">
+<img alt="alt images text somewhere." src="https://github.com/nate-s/quboWFC/blob/main/images/Q%20One%20Hot%20Tile%20Constraint.png">
 </picture>
+--->
+<img src="{{site.url}}/images/Q%20One%20Hot%20Tile%20Constraint.png" style="display: block; margin: auto;" />
 <br/>
 
 The second constraint (legal neighbor placement) is equally simple. For each tile type at a given map space [i,j] we need to reward the annealer for activating a neighboring qubit if and only if it is a legal tile placement. We should also penalize it if it's an illegal combination (This is done in the genLegalQ function). To demonstrate, let the qubit $$x_{i,j,k}$$ correspond to a tile type K placed at map coordinate [i,j]. Take as example the qubits $$x_{0,0,0}$$ and $$x_{1,0,5}$$. If it's legal to place tile 5 above tile 0 then the cross coefficient $$a$$ in $$ax_{0,0,0}x_{1,0,5}$$ will be 1, and if it's illegal it will be -1. A visual of this constraint is shown below.
