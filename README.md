@@ -1,20 +1,37 @@
-# Wave Function Collapse using actual quantum computing and quantum anealers 
+# Procedurla generation using Qunatum annealers
 
+## Disclaimer
 You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WIP. Updates coming soon are 
+
 1) Cool pictures to convey concepts easier
+
 2) Actual generated maps
 
-I am going to assume that the reader is either 1) already familiar with Wave Function Collapse (WFC) to a degree, or 2) that they have read through the blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse). You do not need a particularly extensive understanding of WFC to read this, but much of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. Disclaimer aside, let’s move straight into the exercise of overcomplicating an otherwise very simple and user friendly algorithm. 
+## Introduction
+
+You do not need a particularly extensive understanding of WFC to read this, but many of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. I am going to assume that the reader is either: 
+
+1) already fmailiar with Wave Function Collapse (WFC) to a degree
+2) that they have read throught he blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse).
+
+Disclaimer aside, let’s overcomplicate an otherwise very simple and user-friendly algorithm using quantum computing.
 
 
-To do this we need to explain an idea called Quadratic Unconstrained Binary Optimization, also called a QUBO. Then we can discuss how QUBOs are used to solve problems leveraging quantum hardware. Finally, we can lay out how to take WFC and convert it into a QUBO problem to be solved on said hardware. 
+Quickly though, why are we doing this at all?
 
-Quickly though, why are we doing this at all? The true answer is that I’m a huge math nerd and think it’s really funny to take a video game algorithm that needlessly appropriated a bunch of quantum physics terminology, and smash it with a mallet back into the realm of quantum physics. The practical answer is that quantum hardware can solve optimization problems that are essentially unsolvable through any other means, and they can do it on the order of milliseconds and faster for our intents and purposes. It also finds the __GLOBAL MINIMUM__, which does not mean much for us, but is an incredible guarantee in the realm of optimization. If a problem can be realistically converted into a form ingestible by a quantum computer, then it likely should be. The disclaimer “realistically” has a lot of important factors behind it but we will discuss those at the end after laying everything out.
+
+The truth is that I’m a huge math nerd. The practical answer is to illustrate the unique properties of quantum computers—how they’re not simply faster than today’s computers, but solve optimization problems essentially unsolvable otherwise in milliseconds.
+
+If a problem can be “realistically” converted into a form ingestible by a quantum computer, and you have the resources, then it likely should be. Unlike non-quantum solutions, the __GLOBAL MINIMUM__ is found, an incredible guarantee in the realm of optimization. The disclaimer “realistically” has a lot of important factors we’ll talk about later.
+Before that, however, we need to explain an idea called Quadratic Unconstrined Binary Optimization (QUBO). Then we can discuss how QUBOs are used to solve problems leveraging quantum hardware. Finally, we can lay out how to take WFC and convert it into a QUBO problem to be solved on said hardware.
+
+
+
 
 
 ## QUBO
 
-A QUBO is a mathematical formulation for Binary Optimization problems, or problems where each variable is binary (yes/no) (0/1). We want to find some optimal combination of these variables. A QUBO problem takes the form of:
+Quadratic Unconstrained Binary Optimization (QUBO) is a mathematical formulation for Binary Optimization problems, or problems where each variable is binary (0 or 1). We want to find some optimal combination of these variables. A QUBO problem takes the form of:
 
 $$ y = x_1^2a_{1} + x_2^2a_{2} + x_3^2a_{3} … x_N^2a_{N} +  2x_1x_2a_{12} + … $$
 
@@ -81,7 +98,8 @@ y = \begin{bmatrix}x_1&x_2&x_3&...&x_{N}\end{bmatrix}
 --->
 
 <br/><br/>
-This is the Holy QUBO Equation, it defines the entirity of a QUBO problem, and it is the matrix form of a _quadratic optimization problem_ using _binary variables_. The vector __x__ contains each binary variable in the optimization problem, and the square matrix __Q__ contains the weights for each respective combination of binary variables. The goal is to find what combination of binary variables (0s and 1s) will yield the optimal output __y__ (either the minimum or maximum value). Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be coneverted into a QUBO but first we need to write it out as a quadratic equation.
+
+This is our QUBO Equation from before, represented as a matrix. The goal is to find what combination of binary variables (0 or 1) will yield the optimal output __y__ (either the minimum or maximum value). Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be converted into a QUBO—but first we need to write it out as a quadratic equation.
 
 $$ Diff = ( \sum_{i=1}^{N=3}x_ia_i - B )^2 $$
 
@@ -99,9 +117,11 @@ $$ Diff = \sum_{i=1}^{N=3}\sum_{k=1}^{N=3}x_ia_ix_ka_k - 2\sum_{i=1}^{N=3}x_ia_i
 
 Which should look similar to the quadratic equation
 
+
 $$ y = ax^2 + bx + c $$
 
-However, a special feature about QUBOs is that they only have _second order_ terms. Fortunately _binary variables_ have a unique quality where a variable is equal to its square i.e $$1 = 1x1$$ and $$0 = 0x0$$ therefor $$x = x^2$$. In our binary quadratic equation we will square each first order variable leaving only constants and second order terms. The solution to the optimization problem is also not dependant on the constants so we can drop them giving:
+
+Now we can see the QUBO equation shown earlier ( $$y = xQx’$$ ) has only _second order_ terms, or terms raised to the power 2. Fortunately _binary variables_ have a unique quality where a variable is equal to its square i.e $$1 = 1x1$$ and $$0 = 0x0$$. Therefore, $$x = x^2$$. In our binary quadratic equation we will square each first order term making $$x_i = x_i^2$$. Lastly, since we are solving an optimiation problem we are looing for some maximum or minimum on a curve. This max/min is independant from the constant terms in the problem. We can drop them resulting in:
 
 $$ Diff = \sum_{i=1}^{N=3}x_i^2(a_i^2 - 2a_iB) + 2\sum_{i=1}^{N=3}\sum_{k}x_ia_ix_ka_k $$
 
@@ -109,21 +129,22 @@ Which can be written in matrix form as
 
 $$ Diff = xQx' $$
 
-Here, __x__ is a vector of length 3 with a binary variable correpsonding to buying a given snack. __Q__ is a square matrix of size [3x3] with the _self interaction coefficents_ (diagonal terms) $$(a_i^2 - 2a_iB)$$ and _cross interaction coefficients_ (off diagonal terms) $$a_ia_k$$. You can check that the vector x = [1, 1, 0] yields the minimum scalar output which corresponds to purchasing the Soda and Chips!
+Here, __x__ is a vector of length 3 with a binary variable corresponding to buying a given snack. __Q__ is a square matrix of size [3x3] with the _self interaction coefficients_ (diagonal terms) $$(a_i^2 - 2a_iB)$$ and _cross interaction coefficients_ (off diagonal terms) $$a_ia_k$$. You can check that the vector x = [1, 1, 0] yields the minimum scalar output which corresponds to purchasing the Soda and Chips!
 	
  
-Now this likely seems a very silly over complication. Keep in mind however that we only have 1 constraint minimizing budget difference. A great quality of QUBO is that the constraint matrix Q is additive with any other Q matrix of equal size. We could create a new optimization constraint, say, the flavor constraint $$Q_{flavor}$$ so we equitably purchase a diverse range of party snack flavors and not just chips. We could then make a new QUBO formulation by adding the two Q matrices together. This means a QUBO problem can have a large amount of constraints applied without increasing the memory usage of the problem itself (the number of variables). 
+Reformulating this simple problem is likely a very silly over complication. Keep in mind: this method scales to multiple constraints! A great quality of QUBO is that the constraint matrix Q is additive with any other Q matrix of equal size. We could create a new optimization constraint, say, the flavor constraint $$Q_{flavor}$$ so we equitably purchase a diverse range of party snack flavors and not just chips. We could then make a new QUBO formulation by adding the two Q matrices together. This means a QUBO problem can have a large number of constraints applied without increasing the memory usage of the problem itself (the number of variables). 
 
-This might be a reasonable point to dive into how a QUBO problem is put onto quantum hardware, which would inevitably bring us to the question of “What is happening under the hood?” However, this is both 1) a digression from video game WFC and 2) not something I am particularly qualified to explain. I will try to explain some of the quantum physics and science at the end, but for now suffice to say that the benefits of QUBOs on quantum hardware are as follows:
+
+A base assumption we’ll take, but not discuss in this article: we’ll assume QUBO problems areis capable of being solved via quantum hardware. The _how_ is equally interesting, but: 1) a digression from WFC as used for procedural generation in video games and 2) not something I am particularly qualified to explain. Suffice to say the benefits of QUBOs on quantum hardware are as follows:
 
   1) A large combinatorial problem can be impossible to solve classically
-  2) If we try anyway, compared to a classical technique like a genetic algorithm, the quantum solution can easily be 1e4 times faster. (I have seen this in professional settings and it gets faster)
-  3) It does this while finding the _global minimum_. This is a wild promise honestly.
+  2) The quantum solution is easily 1e4 times faster than classical techniques (like genetic algorithms). I have seen this in professional settings, and it gets faster.
+  3) It does this while finding the _global minimum_. 
 
 
 
 
-## QUBO applied to WFC
+## QUBO applied to procedural generation (WFC)
 
 Let’s first lay out a simple WFC problem. We have
   1) An empty grid map
