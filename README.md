@@ -1,4 +1,4 @@
-# Procedurla generation using Qunatum annealers
+# Procedural generation using Quantum annealers
 
 ## Disclaimer
 You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WIP. Updates coming soon are 
