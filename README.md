@@ -146,16 +146,25 @@ A base assumption we’ll take, but not discuss in this article: we’ll assume 
 
 ## QUBO applied to procedural generation (WFC)
 
-Let’s first lay out a simple WFC problem. We have
+As it relates to procedural generation in video games, using WFC we have:
+
   1) An empty grid map
   2) A set of tiles we can place in each grid space
   3) A set of adjacency rules dictating what tiles can be placed next to one another
 
-What we are going to do is define a set of binary variables that correspond to a decision to place a _single tile type_ in a _single map space_. We will be using the following set of 16 tiles to generate a dungeon:
+How can we formulate this as a QUBO?
+
+First, we define a set of binary variables that correspond to a decision to place a _single tile type_ in a _single map space_. We will be using the following set of 16 tiles to generate a dungeon:
 
 (Show 16 tiles with corresponding qubits $$x_1$$ through $$x_{16}$$) 
 
-For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefor assign a binary variable to each tile type for each map space. In an [8x8] size map with 16 tiles this yields 1024 binary variables. On a standard computer each of these variables can be represented by the smallest unit possible, a bit. Since we will be running this on something called a _digital annealer_, which approximates quantum hardware, we will instead represent these variables with a _quantum bit_ (a qubit). We will define a qubit in our problem as $$x_{i,j,k}$$ corresponding to a tile type K placed at map coordinate [i,j]. Any problem set up as a QUBO will return a binary vector whose _qubits_ represent the minimum/maximum energy of the optimization problem set up by the __Q__ matrix. To do this for proc gen WFC we need to develop 2 constraints:
+
+
+
+
+For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefore assign a binary variable to each tile type for each map space. In this problem we will define the binary variable $$x_{i,j,k}$$ as the decision to place type K placed at map coordinate [i,j]. In an [8x8] sized map with 16 tile types this yields 1024 binary variables. 
+
+On a standard computer a binary variable is represented by a _bit_. A quantum computer uses bits as well, but distinguishes them from traditional computers by calling them _quantum bits_ (qubits). A qubit is different from a bit, and leverages quantum physics principles to do things I am unqualified to explain at the moment. For us to run our QUBO problem on a _digital annealer_ we will assign a _qubit_ to each of our 1024 binary variables. The annealer will return a binary vector whose qubits represent the solution to the optimization problem formed by the constraint matrix __Q__. To do this for WFC we need to develop 2 constraints:
 
   1) We cannot place more than 1 tile per map coordinate
   2) A tile can only be placed next to a valid neighboring tile
@@ -178,7 +187,7 @@ And for 3
 $$ E = ( 1 - x - y - z + 2xy + 2xz + 2yz ) $$
 
 
-Etc. As you can see the cross interaction terms are +2 and the self interaction terms are -1. Since I have abritrarily decided to write this as a _maximization_ problem I swapped the signs making the Q matrix:
+Etc. As you can see the cross interaction terms are +2 and the self interaction terms are -1. Since I have arbitrarily decided to write this as a _maximization_ problem I swapped the signs making the Q matrix:
 
 
 $$ Q = \begin{bmatrix} 1 & -2 & -2 & ... & -2\\
@@ -189,7 +198,7 @@ $$ Q = \begin{bmatrix} 1 & -2 & -2 & ... & -2\\
 
 
 <br/>
-As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. A visual of the Q matrix is shown below for our set of 16 tiles over a [3x3] map space. It is hard ot tell since these matrices grow large very quickly, but this cosntraint only affects variables in increments of 16. This reflects how we are using 16 tiles per grid space. On a [3x3] map we have (3)(3)(16)=144 variables.
+As you might see, by activating only 1 qubit we get an energy of 1. By activating any 2 qubits we get an energy of 0, any 3 = -4, etc… Since the annealer will find the globally optimal solution to our Q matrix it does not matter how close the optimal answer is to any sub-optimal answers. A visual of the Q matrix is shown below for our set of 16 tiles over a [3x3] map space. It is hard to tell since these matrices grow large very quickly, but this constraint only affects variables in increments of 16. This reflects how we are using 16 tiles per grid space. On a [3x3] map we have (3)(3)(16)=144 variables.
 <br/> 
 
 
@@ -207,7 +216,7 @@ The second constraint (legal neighbor placement) is equally simple. For each til
 
 <img src="{{site.url}}/images/Q%20Valid%20Placement%20Constraint.png" style="display: block; margin: auto;" />
 
-This is likely the most visually distinct of the constraints I will lay out here so I will dissect it a little in detail. It should be apparant with this image that the Q matrix in a QUBO formulation is symmettric. Noting this, you can asses asses how a constraint affects the optimization problem by either looking at the collumns or rows. To start lets focus on the map space [0,0] which corresponds to the first 16 variables. We can tell visually that this constraint only cares about the _cross interaciton terms_ since all interaction term weights _within a tile space_ are set to 0 (i.e. weights between variables 0-16). The next thing we can tell is how many adjacent map spaces our chosen tile cares about (looking at either the row or column). In this case, the cortner [0,0] only needs to ensure a legal placement with its NSEW neighbors [0,1] and [1,0]. As such we only have two regions where cross-interaction terms are non-zero, which are the sets of 16 variables assigned those two map spaces. The last thing to note is that we technically have 4 different cross-interaction patterns which may be more apparant along the rows roughly spanning 60 to 80. These are different because, for each tile, it's legal placement changes depending on which location among NSEW it is placed. 
+This is likely the most visually distinct of the constraints I will lay out here so I will dissect it a little in detail. It should be apparent with this image that the Q matrix in a QUBO formulation is symmetric. Noting this, you can asses how a constraint affects the optimization problem by either looking at the columns or rows. To start lets focus on the map space [0,0] which corresponds to the first 16 variables. We can tell visually that this constraint only cares about the _cross interaction terms_ since all interaction term weights _within a tile space_ are set to 0 (i.e. weights between variables 0-16). The next thing we can tell is how many adjacent map spaces our chosen tile cares about (looking at either the row or column). In this case, the cortner [0,0] only needs to ensure a legal placement with its NSEW neighbors [0,1] and [1,0]. As such we only have two regions where cross-interaction terms are non-zero, which are the sets of 16 variables assigned those two map spaces. The last thing to note is that we technically have 4 different cross-interaction patterns which may be more apparent along the rows roughly spanning 60 to 80. These are different because, for each tile, its legal placement changes depending on which location among NSEW it is placed. 
 
 <br/>
 The new Q matrix is comprised of both these constraints 
@@ -227,13 +236,13 @@ Laying out the general quadratic equation _just_ for tile k:
 
 $$ y = A(x_1^2 + x_2^2 + x_3^2 + … + x_{NN}^2 ) + B( x_1x_2 + x_1x_3 +… + x_1x_{NN} + … +x_{N-1}x_{NN}) $$
 
-The A matrix has [N] cosntant terms for the diagonal, and the B matrix has N*(N-1) terms for the off-diagonals. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly: <br/>
+The A matrix has [N] constant terms for the diagonal, and the B matrix has N*(N-1) terms for the off-diagonals. Since we are working with binary variables, the sum of n activated qubits is n, so we can substitute N and N*(N-1) directly: <br/>
 
 
 $$ y = An + Bn(n-1) = An + Bn^2 - Bn = Bn^2 + n(A-B) $$
 
 
-This quadratic tells us the... energy(?)... for n activated qubits. It doesn't actually mean anything as an equation unless we can make it's minimum/maximum correspond to our desired number of tile placements. This means we have to find the weights A and B such that activating qubits with the frequency $${\sigma}_k = n/(NN)$$ gives the optimal output. To do this we need to find the optimal output in the first place, which we can do by taking the derivative and setting it equal to zero (wow truly back to calc 1 days):
+This quadratic tells us the... energy(?)... for n activated qubits. It doesn't actually mean anything as an equation unless we can make its minimum/maximum correspond to our desired number of tile placements. This means we have to find the weights A and B such that activating qubits with the frequency $${\sigma}_k = n/(NN)$$ gives the optimal output. To do this we need to find the optimal output in the first place, which we can do by taking the derivative and setting it equal to zero (wow truly back to calc 1 days):
 
 
 $$ dy/dn = 2Bn + A - B = 0 $$
@@ -260,7 +269,7 @@ I have arbitrarily decided we can set B to 1 resulting Q matrix that might look 
 
 <img src="{{site.url}}/images/Q%20Global%20Probability%20Constraint%20(zoomed).png" style="display: block; margin: auto;" />
 
-(Say something about probability cosntraint here)
+(Say something about probability constraint here)
 
 Now the optimal solution to our QUBO function is one where tile k only occurs with frequency $${\sigma}_k$$! This is close to a complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game dev. In our dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed by _seeding_ that tile. The thought process for my proposed solution is as follows. We have a set of qubits tile space [0, 0]:
 
@@ -287,7 +296,7 @@ and the third qubit
 
 $$ x_3x_ja_{3j} = (1)x_ja_{3j} = (1)x_j^2a_{3j} $$
 
-Once again, since a a binary variable's first order term is equal to it's second order term, these can be added to the self activation coefficients of our remaining variables. Therefore, seeding a tile will only affect the weight along the diagonal. We now have 4 constraints in our Q matrix:
+Once again, since a binary variable's first order term is equal to its second order term, these can be added to the self activation coefficients of our remaining variables. Therefore, seeding a tile will only affect the weight along the diagonal. We now have 4 constraints in our Q matrix:
 
   1) $$Q_{oneHot}$$ <br/>
   2) $$Q_{legal}$$ <br/>
@@ -319,12 +328,12 @@ The first and most immediate bottleneck with quantum hardware today is how limit
 
 ### 2) Randomness
 
-The point of WFC is to procedurally generate a different map every time you run the algorithm. An annealer solves a given QUBO problem. The annealer will therefor return the same solution each time if that solution is the singularly most optimal of all possible combinations. This is not random and not satisfactory for our intents. Conversely, if two solutions are both globally optimal, the annealer should return one of the two randomly. A QUBO to demonstrate this would be:
+The point of WFC is to procedurally generate a different map every time you run the algorithm. An annealer solves a given QUBO problem. The annealer will therefore return the same solution each time if that solution is the most singularly optimal of all possible combinations. This is not random and not satisfactory for our intentions. Conversely, if two solutions are both globally optimal, the annealer should return one of the two randomly. A QUBO to demonstrate this would be:
 
 
 $$ Q = \begin{bmatrix}1 & -1\\
 -1 & 1\end{bmatrix} $$
 
      
-Since either [1, 0] or [0, 1] are optimal the annealer should randomly activate either of the two qubits. I can’t test this however since I don’t have access to run time on an annealer >:( This potential randomness is important to know because depending on how you set up the constraints for a QUBO, any of the "legaly placed solutions" should be optimal. The annealer should therefore return a random map. Since I am not a quantum physicist though and don’t actually know what that potential randomness will look like, is it normaly distributed, is it true random? I DON'T KNOW WHY DID THEY REMOVE THE FREE ANNEALER ACCESS (I get why but I want to make silly game stuff). 
+Since either [1, 0] or [0, 1] are optimal the annealer should randomly activate either of the two qubits. I can’t test this however since I don’t have access to run time on an annealer >:( This potential randomness is important to know because depending on how you set up the constraints for a QUBO, any of the "legally placed solutions" should be optimal. The annealer should therefore return a random map. Since I am not a quantum physicist though and don’t actually know what that potential randomness will look like, is it normally distributed, is it true random? I DON'T KNOW WHY DID THEY REMOVE THE FREE ANNEALER ACCESS (I get why but I want to make silly game stuff). 
 
