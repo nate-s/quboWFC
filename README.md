@@ -10,6 +10,21 @@ You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WI
 <img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
 <br/>
 
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%201.5.gif" style="display: block; margin: auto;" />
+<br/>
+
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%202.gif" style="display: block; margin: auto;" />
+<br/>
+
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%202.5.gif" style="display: block; margin: auto;" />
+<br/>
+
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%203.gif" style="display: block; margin: auto;" />
+<br/>
+
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
+<br/>
+
 ## Introduction
 
 You do not need a particularly extensive understanding of WFC to read this, but many of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. I am going to assume that the reader is either: 
