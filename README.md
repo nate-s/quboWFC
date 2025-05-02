@@ -24,7 +24,7 @@ You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WI
 <img src="{{site.url}}/images/WFCVisualAlg2.5.gif" style="display: block; margin: auto;" />
 <br/>
 
-<img src="{{site.url}}/images/WFCVisualAlg3.gif" style="display: block; margin: auto;" />
+<img src="{{site.url}}/images/WFCVisualAlg03.gif" style="display: block; margin: auto;" />
 <br/>
 
 <img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
