@@ -7,7 +7,7 @@ You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WI
 
 2) Actual generated maps
 
-<img src="{{site.url}}/images/WFC%20Visual%20Alg%20(01)(02).gif" style="display: block; margin: auto;" />
+<img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
 <br/>
 
 ## Introduction
