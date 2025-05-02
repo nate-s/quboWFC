@@ -7,6 +7,9 @@ You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WI
 
 2) Actual generated maps
 
+<img src="{{site.url}}/images/%20Visual%20Algorithm%20(01).png" style="display: block; margin: auto;" />
+<br/>
+
 ## Introduction
 
 You do not need a particularly extensive understanding of WFC to read this, but many of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. I am going to assume that the reader is either: 
