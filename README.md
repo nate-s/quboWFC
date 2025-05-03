@@ -23,29 +23,31 @@ You do not need a particularly extensive understanding of WFC to read this, but 
 <details>
 	<Summary>WFC Algorithm Overview</Summary>
 	<br/>
-	The following is a visual illustration of traditional WFC for procedurally generating a video game map. For this example we will be using the following set of 16 tiles to fill a 2 by 2 space:
+	The following is a visual illustration of traditional WFC for procedurally generating a video game maps. For some syntax you will encounter with this algorithm, an empty map space is refered to as being *uncollapsed* and the set of tiles that can be placed there as the *wave space*. *Collapsing the wave space* means you've taken an empty map space and placed a tile there from the list of valid potential tiles. However, I will not use this terminology since it confuses me. 
+	<br/>
+	In this example we will use the a set of 16 tiles to fill a 2 by 2 space.
  	<img src="{{site.url}}/images/WFC%20Visual%20Algorithm%20(00).png" style="display: block; margin: auto;" />
 	<br/>
-	We start by selecting an empty map space, choosing a tile at random from the list of _legal tiles_, and placing it down.
+	We start by choosing an empty map space, selecting a tile at random from the list of possible legal tiles, and placing it down.
 	<img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
 	<br/>
-	4
+	A tile can only be placed next to a tile with mathcing conections. As such, the two neighboring space have their list of possible tiles restricted. An empty and *unrestricted* space could be any of our 16 possible tiles, meaning we are very uncertain of what will go there. Conversely, the two highlighted regions can now only be 1 of 8 possible tiles meaning we are *more* certain of what will go there.
 	<br/>
 	<img src="{{site.url}}/images/WFCVisualAlg1.5.gif" style="display: block; margin: auto;" />
 	<br/>
-	5
+	Of the three empty spaces we choose the region with the *greatest certainty* to place a tile in. In the case of a tie we choose randomly amongst the tied spaces. 
 	<br/>
 	<img src="{{site.url}}/images/WFCVisualAlg2.gif" style="display: block; margin: auto;" />
 	<br/>
-	6
+	This process repeats. We asses how the placed tile affects the possiblities of adjacent spaces and choose the space with the greatest certainty.
 	<br/>
 	<img src="{{site.url}}/images/WFCVisualAlg2.5.gif" style="display: block; margin: auto;" />
 	<br/>
-	7
+	Randomly select a tile to place.
 	<br/>
 	<img src="{{site.url}}/images/WFCVisualAlg03.gif" style="display: block; margin: auto;" />
 	<br/>
-	8
+	And repeat until the map is filled.
 	<br/>
 	<img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
 	<br/>
