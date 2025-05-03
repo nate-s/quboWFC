@@ -8,28 +8,50 @@ You can find the io page [here](https://nate-s.github.io/quboWFC/). This is a WI
 2) Actual generated maps
 
 
-<details>
-	<Summary>Algorithm overview</Summary>
-	<img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
-	<br/>
-	<img src="{{site.url}}/images/WFCVisualAlg1.5.gif" style="display: block; margin: auto;" />
-	<br/>
-	<img src="{{site.url}}/images/WFCVisualAlg2.gif" style="display: block; margin: auto;" />
-	<br/>
-	<img src="{{site.url}}/images/WFCVisualAlg2.5.gif" style="display: block; margin: auto;" />
-	<br/>
-	<img src="{{site.url}}/images/WFCVisualAlg03.gif" style="display: block; margin: auto;" />
-	<br/>
-	<img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
-	<br/>
-</details>
-
 ## Introduction
 
 You do not need a particularly extensive understanding of WFC to read this, but many of the choices here may not seem particularly interesting without the context of the “original” algorithm and its history. I am going to assume that the reader is either: 
 
 1) already fmailiar with Wave Function Collapse (WFC) to a degree
+ 
 2) that they have read throught he blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse).
+
+
+ If the reader would like, a brief overview is provided below:
+
+
+<details>
+	<Summary>WFC Algorithm Overview</Summary>
+	<br/>
+	The following is a visual illustration of traditional WFC for procedurally generating a video game map. For this example we will be using the following set of 16 tiles to fill a 2 by 2 space:
+ 	<img src="{{site.url}}/images/WFC%20Visual%20Algorithm%20(00).png" style="display: block; margin: auto;" />
+	<br/>
+	We start by selecting an empty map space, choosing a tile at random from the list of _legal tiles_, and placing it down.
+	<img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
+	<br/>
+	4
+	<br/>
+	<img src="{{site.url}}/images/WFCVisualAlg1.5.gif" style="display: block; margin: auto;" />
+	<br/>
+	5
+	<br/>
+	<img src="{{site.url}}/images/WFCVisualAlg2.gif" style="display: block; margin: auto;" />
+	<br/>
+	6
+	<br/>
+	<img src="{{site.url}}/images/WFCVisualAlg2.5.gif" style="display: block; margin: auto;" />
+	<br/>
+	7
+	<br/>
+	<img src="{{site.url}}/images/WFCVisualAlg03.gif" style="display: block; margin: auto;" />
+	<br/>
+	8
+	<br/>
+	<img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
+	<br/>
+</details>
+
+
 
 Disclaimer aside, let’s overcomplicate an otherwise very simple and user-friendly algorithm using quantum computing.
 
