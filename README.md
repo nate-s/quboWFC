@@ -25,8 +25,11 @@ You do not need a particularly extensive understanding of WFC to read this, but 
 WFC Algorithm Overview
 </Summary>
 <br/>
+
 	
 The following is a visual illustration of traditional WFC for procedurally generating a video game map. In this example we will use the a set of 16 tiles to fill a 2 by 2 space:
+
+
 <!---For some syntax you will encounter when reading about this algorithm, an empty map space is refered to as being _uncollapsed_ and the set of tiles that can be placed there as the _wave space_. _Collapsing the wave space_ means you've taken an empty map space and placed a tile there from the list of valid potential tiles. However, I will not use this terminology since it confuses me. 
 -->
 
@@ -34,43 +37,61 @@ The following is a visual illustration of traditional WFC for procedurally gener
 <img src="{{site.url}}/images/WFC%20Visual%20Algorithm%20(00).png" style="display: block; margin: auto;" />
 <br/>
 
+
 We start by choosing an empty map space, selecting a tile at random from the list of possible legal tiles, and placing it down.
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFC%20Visual%20Alg%201.gif" style="display: block; margin: auto;" />
 <br/>
 
-A tile can only be placed next to a tile with matching conections. As such, the two neighboring space have their list of possible tiles restricted. Since an empty and _unrestricted_* space could be any of the 16 possible tiles it means we are very _uncertain_ of what will go there. Conversely, the two highlighted regions can now only be 1 of 8 possible tiles meaning we are *more* certain of what will go there.
+
+A tile can only be placed next to a tile with matching conections. As such, the two neighboring space have their list of possible tiles restricted. Since an empty and _unrestricted_ space could be any of the 16 possible tiles it means we are very _uncertain_ of what will go there. Conversely, the two highlighted regions can now only be 1 of 8 possible tiles meaning we are *more* certain of what will go there.
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFCVisualAlg1.5.gif" style="display: block; margin: auto;" />
 <br/>
+
+
 Of the three empty spaces we choose the region with the _greatest certainty_ to place a tile in. In the case of a tie we choose randomly amongst the tied spaces.
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFCVisualAlg2.gif" style="display: block; margin: auto;" />
 <br/>
 
+
 This process repeats. We asses how the placed tile affects the possiblities of adjacent spaces and choose the space with the greatest certainty.
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFCVisualAlg2.5.gif" style="display: block; margin: auto;" />
 <br/>
 
+
 Then randomly select a legal tile to place.
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFCVisualAlg03.gif" style="display: block; margin: auto;" />
 <br/>
 
+
 And repeat until the map is filled!
+
 
 <br/><br/>
 <img src="{{site.url}}/images/WFC%20Visual%20Alg%204.gif" style="display: block; margin: auto;" />
 <br/>
+
+
 This is the core of how WFC procedurally generates maps. With just this you can build _correct_ maps, but you cannot guarantee building _interesting_ maps. Augmenting the algorithm is what control the stylistic elements of the generated map. For instance controlling the probability of certain tile choices builds can build spares and concetric maps or dense mazes.
-<br/>
+
+
+<br/><br/>
 <img src="{{site.url}}/images/WFCdemo1.png" style="display: block; margin: auto;" />
+<br/<>
 <img src="{{site.url}}/images/WFCdemo2.png" style="display: block; margin: auto;" />
 <br/>
 
