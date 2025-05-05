@@ -240,10 +240,9 @@ How can we formulate this as a QUBO?
 
 First, we define a set of binary variables that correspond to a decision to place a _single tile type_ in a _single map space_. We will be using the following set of 16 tiles to generate a dungeon:
 
-(Show 16 tiles with corresponding qubits $$x_1$$ through $$x_{16}$$) 
 
-
-
+<img src="{{site.url}}/images/QUBO%20Deungeon%20tileset%20labeled.png" style="display: block; margin: auto;" />
+<br/>
 
 
 For each empty space in the map we are trying to decide which of these 16 tiles we want to place. We therefore assign a binary variable to each tile type for each map space. In this problem we will define the binary variable $$x_{i,j,k}$$ as the decision to place type K placed at map coordinate [i,j]. In an [8x8] sized map with 16 tile types this yields 1024 binary variables. 
