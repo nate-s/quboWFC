@@ -14,7 +14,7 @@ You do not need a particularly extensive understanding of WFC to read this, but 
 
 1) already fmailiar with Wave Function Collapse (WFC) to a degree
  
-2) that they have read throught he blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse).
+2) that they have read through the blog post linked [here](https://github.com/mxgmn/WaveFunctionCollapse).
 
 
  If the reader would like, a brief overview is provided below:
@@ -38,7 +38,7 @@ The following is a visual illustration of traditional WFC for procedurally gener
 <br/>
 
 
-We start by choosing an empty map space, selecting a tile at random from the list of possible legal tiles, and placing it down.
+We start by choosing an empty map space we want to fill. We then select a tile at random from the list of possible legal tiles and place it down.
 
 
 <br/><br/>
@@ -46,7 +46,7 @@ We start by choosing an empty map space, selecting a tile at random from the lis
 <br/>
 
 
-A tile can only be placed next to a tile with matching conections. As such, the two neighboring space have their list of possible tiles restricted. Since an empty and _unrestricted_ space could be any of the 16 possible tiles it means we are very _uncertain_ of what will go there. Conversely, the two highlighted regions can now only be 1 of 8 possible tiles meaning we are *more* certain of what will go there.
+A tile can only be placed next to a tile with matching conections. As such, the two neighboring space have their list of possible tiles restricted. Since an empty and *unrestricted* space could be any of the 16 possible tiles it means we are very _uncertain_ of what will go there. Conversely, the two highlighted regions can now only be 1 of 8 pssible tiles meaning we are *more* certain of what will go there.
 
 
 <br/><br/>
@@ -86,12 +86,12 @@ And repeat until the map is filled!
 <br/>
 
 
-This is the core of how WFC procedurally generates maps. With just this you can build _correct_ maps, but you cannot guarantee building _interesting_ maps. Augmenting the algorithm is what control the stylistic elements of the generated map. For instance controlling the probability of certain tile choices builds can build spares and concetric maps or dense mazes.
+This is the core of how WFC procedurally generates maps. With just this you can build _correct_ maps, but you cannot guarantee building _interesting_ maps. Augmenting the algorithm is what controls the stylistic elements of the generated map. For instance controlling the probability of certain tile choices can result in concetric maps or dense mazes.
 
 
 <br/><br/>
 <img src="{{site.url}}/images/WFCdemo1.png" style="display: block; margin: auto;" />
-<br/<>
+<br/>
 <img src="{{site.url}}/images/WFCdemo2.png" style="display: block; margin: auto;" />
 <br/>
 
@@ -127,7 +127,7 @@ Where $$x_i$$ are binary variables, $$a_{ij}$$ is a set of weights for each choi
 |$$x_{chips}$$|$$a_2=$$$5|
 |$$x_{fruits}$$|$$a_3=$$$2|
 
-Given these items and cost the binary formula for how much money we spend is:
+Given these items and cost, the binary formula for how much money we spend is:
 
 $$ Y = x_{soda}a_1 + x_{chips}a_2 + x_{fruits}a_3 $$
 
@@ -149,7 +149,7 @@ x_i(q_i^2 - B) + x_{ij}2(q_iq_j) + B^2
 where i != j in the _cross interaction_ terms.
 --->
 
-By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the optimal combination. To do that however we need to convert the difference equation into a QUBO of the form: <br/><br/>
+By minimizing the difference we find the optimal combination of items to buy that brings us as close to our budget as possible. This is clearly the Soda and Chips since they total $9, but we could easily include every item in the grocery store’s inventory as a variable and find the optimal combination. To do that however we need to convert the difference equation into a QUBO, whcih takes the form: <br/><br/>
 
 $$ y = xQx’ $$
 
@@ -183,7 +183,7 @@ y = \begin{bmatrix}x_1&x_2&x_3&...&x_{N}\end{bmatrix}
 
 <br/><br/>
 
-This is our QUBO Equation from before, represented as a matrix. The goal is to find what combination of binary variables (0 or 1) will yield the optimal output __y__ (either the minimum or maximum value). Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be converted into a QUBO—but first we need to write it out as a quadratic equation.
+This is our QUBO Equation from before, represented in matrix form. The goal is to find what combination of binary variables (0 or 1) will yield the optimal output __y__ (either the minimum or maximum value). Funny enough, our contrived snack example is an optimization problem built up from binary decision variables! This can be converted into a QUBO—but first we need to write it out as a quadratic equation.
 
 $$ Diff = ( \sum_{i=1}^{N=3}x_ia_i - B )^2 $$
 
@@ -205,7 +205,7 @@ Which should look similar to the quadratic equation
 $$ y = ax^2 + bx + c $$
 
 
-Now we can see the QUBO equation shown earlier ( $$y = xQx’$$ ) has only _second order_ terms, or terms raised to the power 2. Fortunately _binary variables_ have a unique quality where a variable is equal to its square i.e $$1 = 1x1$$ and $$0 = 0x0$$. Therefore, $$x = x^2$$. In our binary quadratic equation we will square each first order term making $$x_i = x_i^2$$. Lastly, since we are solving an optimiation problem we are looing for some maximum or minimum on a curve. This max/min is independant from the constant terms in the problem. We can drop them resulting in:
+Now we can see the QUBO equation shown earlier ( $$y = xQx’$$ ) has only _second order_ terms, or terms raised to the power 2. Fortunately _binary variables_ have a unique quality where a variable is equal to its square i.e $$1 = 1x1$$ and $$0 = 0x0$$. Therefore, $$x = x^2$$. In our binary quadratic equation we will square each first order term making $$x_i = x_i^2$$. Lastly, since we are solving an optimiation problem we are looking for some maximum or minimum on a curve. This max/min is independant from the constant term *B* in the problem. We can drop them resulting in:
 
 $$ Diff = \sum_{i=1}^{N=3}x_i^2(a_i^2 - 2a_iB) + 2\sum_{i=1}^{N=3}\sum_{k}x_ia_ix_ka_k $$
 
@@ -219,7 +219,7 @@ Here, __x__ is a vector of length 3 with a binary variable corresponding to buyi
 Reformulating this simple problem is likely a very silly over complication. Keep in mind: this method scales to multiple constraints! A great quality of QUBO is that the constraint matrix Q is additive with any other Q matrix of equal size. We could create a new optimization constraint, say, the flavor constraint $$Q_{flavor}$$ so we equitably purchase a diverse range of party snack flavors and not just chips. We could then make a new QUBO formulation by adding the two Q matrices together. This means a QUBO problem can have a large number of constraints applied without increasing the memory usage of the problem itself (the number of variables). 
 
 
-A base assumption we’ll take, but not discuss in this article: we’ll assume QUBO problems areis capable of being solved via quantum hardware. The _how_ is equally interesting, but: 1) a digression from WFC as used for procedural generation in video games and 2) not something I am particularly qualified to explain. Suffice to say the benefits of QUBOs on quantum hardware are as follows:
+A base assumption we’ll take, but not discuss in this article: we’ll assume QUBO problems are capable of being solved via quantum hardware. The _how_ is equally interesting, but: 1) a digression from WFC as used for procedural generation in video games and 2) not something I am particularly qualified to explain. Suffice to say the benefits of QUBOs on quantum hardware are as follows:
 
   1) A large combinatorial problem can be impossible to solve classically
   2) The quantum solution is easily 1e4 times faster than classical techniques (like genetic algorithms). I have seen this in professional settings, and it gets faster.
@@ -299,7 +299,7 @@ The second constraint (legal neighbor placement) is equally simple. For each til
 
 <img src="{{site.url}}/images/Q%20Valid%20Placement%20Constraint.png" style="display: block; margin: auto;" />
 
-This is likely the most visually distinct of the constraints I will lay out here so I will dissect it a little in detail. It should be apparent with this image that the Q matrix in a QUBO formulation is symmetric. Noting this, you can asses how a constraint affects the optimization problem by either looking at the columns or rows. To start lets focus on the map space [0,0] which corresponds to the first 16 variables. We can tell visually that this constraint only cares about the _cross interaction terms_ since all interaction term weights _within a tile space_ are set to 0 (i.e. weights between variables 0-16). The next thing we can tell is how many adjacent map spaces our chosen tile cares about (looking at either the row or column). In this case, the cortner [0,0] only needs to ensure a legal placement with its NSEW neighbors [0,1] and [1,0]. As such we only have two regions where cross-interaction terms are non-zero, which are the sets of 16 variables assigned those two map spaces. The last thing to note is that we technically have 4 different cross-interaction patterns which may be more apparent along the rows roughly spanning 60 to 80. These are different because, for each tile, its legal placement changes depending on which location among NSEW it is placed. 
+This is likely the most visually distinct of the constraints I will lay out here so I will dissect it a little more in detail. It should be apparent with this image that the Q matrix in a QUBO formulation is symmetric. Noting this, you can asses how a constraint affects the optimization problem by either looking at the columns or rows. To start lets focus on the map space [0,0] which corresponds to the first 16 variables. We can tell visually that this constraint only cares about the _cross interaction terms_ since all interaction term weights _within a tile space_ are set to 0 (i.e. weights between variables 0-16). The next thing we can tell is how many adjacent map spaces our chosen tile cares about (looking at either the row or column). In this case, the corner [0,0] only needs to ensure a legal placement with its NSEW neighbors [0,1] and [1,0]. As such we only have two regions where cross-interaction terms are non-zero, which are the sets of 16 variables assigned those two map spaces. The last thing to note is that we technically have 4 different cross-interaction patterns which may be more apparent along the rows roughly spanning 60 to 80. These are different because, for each tile, its legal placement changes depending on which location among NSEW it is placed. 
 
 <br/>
 The new Q matrix is comprised of both these constraints 
@@ -310,7 +310,7 @@ $$ Q = Q_{oneHot} + Q_{legal} $$
 <img src="{{site.url}}/images/Combined%20Q%20Matrix.png" style="display: block; margin: auto;" />
 <br/>
 
-On their own these two constraints are enough to produce _correct_ maps, but they won’t necessarily produce _exciting_ maps, and we have zero control over the generation process. In traditional procgen WFC one of the things a dev usually wants to implement is a _frequency constraint_. If a treasure chest only appears once in the demo map then the generated maps should also try to maintain a similar placement rate, unless the dev wants the player to be lousy with treasure. I’m going to categorize this type of constraint as a _flavoring constraint_, meaning any constraint that affects the style of maps generated (and is found in the genGlobalProbQ function). The derivation is as follows:
+On their own these two constraints are enough to produce _correct_ maps, but they won’t necessarily produce _exciting_ maps, and we have zero control over the generation process. In traditional procgen WFC one of the things a developer usually wants to implement is a _frequency constraint_. If a treasure chest only appears once in the demo map then the generated maps should also try to maintain a similar placement rate, unless the developer wants the player to be lousy with treasure. I’m going to categorize this type of constraint as a _flavoring constraint_, meaning any constraint that affects the style of maps generated (and is found in the genGlobalProbQ function). The derivation is as follows:
 
 In a map of size [NxN], the frequency of tile k is $${\sigma}_k$$, where $${\sigma}_k = ($$ # of times tile k is used $$)/(NN)$$
 
@@ -352,15 +352,17 @@ I have arbitrarily decided we can set B to 1 resulting Q matrix that might look 
 
 <img src="{{site.url}}/images/Q%20Global%20Probability%20Constraint%20(zoomed).png" style="display: block; margin: auto;" />
 
-(Say something about probability constraint here)
 
-Now the optimal solution to our QUBO function is one where tile k only occurs with frequency $${\sigma}_k$$! This is close to a complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game dev. In our dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed by _seeding_ that tile. The thought process for my proposed solution is as follows. We have a set of qubits tile space [0, 0]:
+What this matrix shows is that, by activating any qubit of tile type *k*, we reward the annealer with a positive value. However, by activating a qubit of the same type in any other location on the map we penalize the annealer with a negative value. The reward for activating a specific tile type is for _linear_ $$N$$ activations while the penalty is _quadratic_ $$N*N$$. Activating the number of tiles resulting in the desired frequency yields the maximum value of this function.
+
+
+Now the optimal solution to our QUBO function is one where tile k only occurs with frequency $${\sigma}_k$$! This is close to a complete solution for procgen WFC, but it’s missing a very specific degree of control necessary for game development. In our dungeon example we need at least 1 entrance for our player to enter through and we may want to control where that entrance is placed by _seeding_ that tile. The thought process for my proposed solution is as follows. For tile space [0, 0] we have the set of qubits:
 
 
 $$ \sum_{k=1}^{16}\sum_{k'=1}^{16}x_kx_{k'}a_{kk'} $$
 
 
-This corresponds to the QUBO expansion for the first tile [0, 0]. We also have the qubits corresponding to all cross activations:
+We also have the qubits corresponding to all cross activations:
 
 
 $$ \sum_{k=1}^{16}\sum_{j=17}^{NN}x_kx_ja_{kj} $$
@@ -391,13 +393,13 @@ $$ Q = Q_{oneHot} + Q_{legal} + Q_{\sigma}  + Q_{seeded} $$
 <img src="{{site.url}}/images/Q%20Matrix%20for%203x3%20tile%20map.png" style="display: block; margin: auto;" />
 
 <br/><br/>
-With this we can generate a tile map where the annealer: will choose only a single tile per grid space, the chosen tile will connect legally to its neighbors, each tile type will occur as close to a set number of times as possible, and any grid space on the map can be seeded. This is very cool in my opinion and potentially very powerful. Classical WFC is extremely limited because it places tiles sequentially which will always pose a major bottleneck. And while it’s remarkably simple to implement it's also incredibly tricky to _fix_ any incorrectly generated maps. QUBOs that are run on an annealer are free of both these problems because they find guaranteed correct solutions to complex problems extremely quickly!
+With this we can generate a tile map where the annealer will choose only a single tile per grid space, the chosen tile will connect legally to its neighbors, each tile type will occur as close to a specified number of times as possible, and any grid space on the map can be seeded. This is very cool in my opinion and potentially very powerful. In m y opinion classical WFC is limited because it places tiles sequentially which will always pose a bottleneck. And while it’s remarkably simple to implement it's also incredibly tricky to _fix_ any incorrectly generated maps. QUBOs that are run on an annealer are free of both these problems because they find guaranteed correct solutions to complex problems extremely quickly!
 
 
 
 ## Problems with QUBOs
 
-HOWEVER, the tradeoffs are immense (monkey's paw curls). From here on out is a discussion on the limitations of the QUBO and how they affect the procgen WFC solution shown so far. The main points are:
+HOWEVER, the tradeoffs are immense. From here on out is a discussion on the limitations of the QUBO and how they affect the procgen WFC solution shown so far. The main points are:
 
   1) memory limitations
   2) Randomness
